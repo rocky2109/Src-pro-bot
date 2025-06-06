@@ -73,8 +73,8 @@ async def format_caption_to_html(caption: str) -> str:
     caption = re.sub(r"~~(.*?)~~", r"<s>\1</s>", caption)
     caption = re.sub(r"\|\|(.*?)\|\|", r"<details>\1</details>", caption)
     caption = re.sub(r"\[(.*?)\]\((.*?)\)", r'<a href="\2">\1</a>', caption)
-    text = re.sub(r'@\w+', '@Real_Pirates', text)
-    text = re.sub(r'https?://\S+|www\.\S+', 'https://t.me/Real_Pirates', text)
+    text = re.sub(r'@\w+', '@Real_Pirates', caption)
+    text = re.sub(r'https?://\S+|www\.\S+', 'https://t.me/Real_Pirates', caption)
 
     return caption.strip() if caption else None
     
