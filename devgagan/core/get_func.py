@@ -355,12 +355,15 @@ async def handle_sticker(app, msg, target_chat_id, topic_id, edit_id, log_group)
 
 async def get_media_filename(msg):
     if msg.document:
-        return msg.document.file_name
+        return msg.document.file_name or "Document_By_Real_Pirates.txt"
     if msg.video:
-        return msg.video.file_name if msg.video.file_name else "temp.mp4"
+        return msg.video.file_name or "Video_By_Real_Pirates.mp4"
+    if msg.audio:
+        return msg.audio.file_name or "Audio_By_Real_Pirates.mp3"
     if msg.photo:
-        return "temp.jpg"
-    return "unknown_file"
+        return "Image_By_Real_Pirates.jpg"
+    return "File_By_Real_Pirates.dat"
+
 
 def get_message_file_size(msg):
     if msg.document:
