@@ -371,20 +371,29 @@ def get_message_file_size(msg):
         return msg.video.file_size
     return 1
 
+
+
 async def get_final_caption(msg, sender):
-    # Handle caption based on the upload method
-    if msg.caption:
-        original_caption = msg.caption.markdown
-    else:
-        original_caption = ""
+    # Get original caption in markdown if available
+    original_caption = msg.caption.markdown if msg.caption else ""
     
+    # Add custom caption if present
     custom_caption = get_user_caption_preference(sender)
     final_caption = f"{original_caption}\n\n{custom_caption}" if custom_caption else original_caption
+
+    # Replace @mentions with @Real_Pirates
+    final_caption = re.sub(r'@\w+', '@Real_Pirates', final_caption)
+
+    # Replace all links with your channel link
+    final_caption = re.sub(r'https?://\S+|www\.\S+', 'https://t.me/Real_Pirates', final_caption)
+
+    # Perform additional replacements from user-defined rules
     replacements = load_replacement_words(sender)
     for word, replace_word in replacements.items():
         final_caption = final_caption.replace(word, replace_word)
-        
-    return final_caption if final_caption else None
+
+    return final_caption.strip() if final_caption else None
+
 
 
 async def download_user_stories(userbot, chat_id, msg_id, edit, sender):
