@@ -937,7 +937,9 @@ async def rename_file(file, sender):
     custom_rename_tag = get_user_rename_preference(sender)
 
     # Set default base name if none exists
-    base_name = "RealPirates_File"
+        # Apply mention replacement
+    base_name = re.sub(r'@\w+', '@Real_Pirates', base_name)
+
 
     # Extract extension
     ext = os.path.splitext(file)[-1] or ".mp4"
