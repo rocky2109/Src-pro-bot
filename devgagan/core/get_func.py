@@ -62,7 +62,11 @@ async def fetch_upload_method(user_id):
     user_data = collection.find_one({"user_id": user_id})
     return user_data.get("upload_method", "Pyrogram") if user_data else "Pyrogram"
 
-async def format_caption_to_html(caption: str) -> str:
+
+def format_caption_to_html(caption: str) -> str:
+    if not caption:
+        return None
+
     caption = re.sub(r"^> (.*)", r"<blockquote>\1</blockquote>", caption, flags=re.MULTILINE)
     caption = re.sub(r"```(.*?)```", r"<pre>\1</pre>", caption, flags=re.DOTALL)
     caption = re.sub(r"`(.*?)`", r"<code>\1</code>", caption)
@@ -76,7 +80,8 @@ async def format_caption_to_html(caption: str) -> str:
     caption = re.sub(r'@\w+', '@Real_Pirates', caption)
     caption = re.sub(r'https?://\S+|www\.\S+', 'https://t.me/Real_Pirates', caption)
 
-    return caption.strip() if caption else None
+    return caption.strip()
+
     
 
 
