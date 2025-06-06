@@ -936,26 +936,29 @@ async def rename_file(file, sender):
     replacements = load_replacement_words(sender)
     custom_rename_tag = get_user_rename_preference(sender)
 
-    # Set default base name if none exists
-        # Apply mention replacement
+    # Extract base name and extension
+    base_name, ext = os.path.splitext(file)
+    ext = ext if ext and len(ext) <= 6 else ".mp4"
+
+    base_name = os.path.basename(base_name)  # Only filename without path
+
+    # ✅ Replace @mention with @Real_Pirates
     base_name = re.sub(r'@\w+', '@Real_Pirates', base_name)
 
-
-    # Extract extension
-    ext = os.path.splitext(file)[-1] or ".mp4"
-    if not ext or len(ext) > 6:
-        ext = ".mp4"  # fallback to mp4 if Telegram doesn't give usable extension
-
-    # Clean filename with replacements
+    # 🔁 Apply custom word deletion
     for word in delete_words:
         base_name = base_name.replace(word, "")
 
+    # 🔁 Apply replacement words
     for word, replace_word in replacements.items():
         base_name = base_name.replace(word, replace_word)
 
-    # Final filename
-    new_file_name = f"{base_name} {custom_rename_tag}𖣐{ext}"
+    # ✅ Final new filename with tag and extension
+    new_file_name = f"{base_name} {custom_rename_tag}{ext}"
+
+    # Rename the actual file
     await asyncio.to_thread(os.rename, file, new_file_name)
+
     return new_file_name
 
 
