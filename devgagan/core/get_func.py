@@ -954,7 +954,7 @@ async def rename_file(file, sender):
         base_name = base_name.replace(word, replace_word)
 
     # Final filename
-    new_file_name = f"{base_name} {custom_rename_tag}{ext}"
+    new_file_name = f"{base_name} {custom_rename_tag}𖣐{ext}"
     await asyncio.to_thread(os.rename, file, new_file_name)
     return new_file_name
 
