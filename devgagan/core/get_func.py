@@ -35,6 +35,7 @@ from config import MONGO_DB as MONGODB_CONNECTION_STRING, LOG_GROUP, OWNER_ID, S
 from devgagan.core.mongo import db as odb
 from telethon import TelegramClient, events, Button
 from devgagantools import fast_upload
+from datetime import datetime
 
 def thumbnail(sender):
     return f'{sender}.jpg' if os.path.exists(f'{sender}.jpg') else None
@@ -353,16 +354,28 @@ async def handle_sticker(app, msg, target_chat_id, topic_id, edit_id, log_group)
     await edit.delete()
 
 
+
+
 async def get_media_filename(msg):
     if msg.document:
-        return msg.document.file_name or "Document_By_Real_Pirates.txt"
+        filename = getattr(msg.document, "file_name", None)
+        if not filename:
+            extension = os.path.splitext(msg.document.mime_type or "")[-1] or ".bin"
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"Document_{timestamp}{extension}"
+        return filename
+
     if msg.video:
-        return msg.video.file_name or "Video_By_Real_Pirates.mp4"
+        return getattr(msg.video, "file_name", None) or "Video_By_Real_Pirates.mp4"
+
     if msg.audio:
-        return msg.audio.file_name or "Audio_By_Real_Pirates.mp3"
+        return getattr(msg.audio, "file_name", None) or "Audio_By_Real_Pirates.mp3"
+
     if msg.photo:
         return "Image_By_Real_Pirates.jpg"
-    return "File_By_Real_Pirates.dat"
+
+    return "File_By_Real_Pirates.bin"
+
 
 
 def get_message_file_size(msg):
