@@ -416,7 +416,7 @@ async def copy_message_with_chat_id(app, userbot, sender, chat_id, message_id, e
     try:
         msg = await app.get_messages(chat_id, message_id)
         custom_caption = get_user_caption_preference(sender)
-        final_caption = format_caption(msg.caption or '', sender, custom_caption)
+        final_caption = format_caption_to_html(msg.caption or '', sender, custom_caption)
 
         # Parse target_chat_id and topic_id
         topic_id = None
@@ -444,7 +444,7 @@ async def copy_message_with_chat_id(app, userbot, sender, chat_id, message_id, e
                 await app.send_message(target_chat_id, msg.text.markdown, reply_to_message_id=topic_id)
                 return
 
-            final_caption = format_caption(msg.caption.markdown if msg.caption else "", sender, custom_caption)
+            final_caption = format_caption_to_html(msg.caption.markdown if msg.caption else "", sender, custom_caption)
             file = await userbot.download_media(
                 msg,
                 progress=progress_bar,
