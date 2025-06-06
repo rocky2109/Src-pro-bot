@@ -62,6 +62,15 @@ async def fetch_upload_method(user_id):
     user_data = collection.find_one({"user_id": user_id})
     return user_data.get("upload_method", "Pyrogram") if user_data else "Pyrogram"
 
+def format_caption(caption: str, sender=None, custom_caption=None) -> str:
+    if not caption:
+        return custom_caption or ""
+
+    # Replace @mentions
+    caption = re.sub(r'@\w+', '@Real_Pirates', caption)
+
+    # Replace links (http, https, www)
+    caption = re.sub(r'https?://\S+|www\.\S+', 'https://t.me/Real_Pirates', caption)
 
 def format_caption_to_html(caption: str) -> str:
     if not caption:
@@ -416,7 +425,7 @@ async def copy_message_with_chat_id(app, userbot, sender, chat_id, message_id, e
     try:
         msg = await app.get_messages(chat_id, message_id)
         custom_caption = get_user_caption_preference(sender)
-        final_caption = format_caption_to_html(msg.caption or '', sender, custom_caption)
+        final_caption = format_caption(msg.caption or '', sender, custom_caption)
 
         # Parse target_chat_id and topic_id
         topic_id = None
@@ -444,7 +453,7 @@ async def copy_message_with_chat_id(app, userbot, sender, chat_id, message_id, e
                 await app.send_message(target_chat_id, msg.text.markdown, reply_to_message_id=topic_id)
                 return
 
-            final_caption = format_caption_to_html(msg.caption.markdown if msg.caption else "", sender, custom_caption)
+            final_caption = format_caption(msg.caption.markdown if msg.caption else "", sender, custom_caption)
             file = await userbot.download_media(
                 msg,
                 progress=progress_bar,
