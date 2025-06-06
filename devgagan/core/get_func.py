@@ -358,23 +358,14 @@ async def handle_sticker(app, msg, target_chat_id, topic_id, edit_id, log_group)
 
 async def get_media_filename(msg):
     if msg.document:
-        filename = getattr(msg.document, "file_name", None)
-        if not filename:
-            extension = os.path.splitext(msg.document.mime_type or "")[-1] or ".bin"
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"Document_{timestamp}{extension}"
-        return filename
-
+        return msg.document.file_name or "Document_By_Real_Pirates.txt"
     if msg.video:
-        return getattr(msg.video, "file_name", None) or "Video_By_Real_Pirates.mp4"
-
+        return msg.video.file_name or "Video_By_Real_Pirates.mp4"
     if msg.audio:
-        return getattr(msg.audio, "file_name", None) or "Audio_By_Real_Pirates.mp3"
-
+        return msg.audio.file_name or "Audio_By_Real_Pirates.mp3"
     if msg.photo:
         return "Image_By_Real_Pirates.jpg"
-
-    return "File_By_Real_Pirates.bin"
+    return "File_By_Real_Pirates.dat"
 
 
 
@@ -942,35 +933,26 @@ async def handle_large_file(file, sender, edit, caption):
 
 async def rename_file(file, sender):
     delete_words = load_delete_words(sender)
-    custom_rename_tag = get_user_rename_preference(sender)
     replacements = load_replacement_words(sender)
-    
-    last_dot_index = str(file).rfind('.')
-    
-    if last_dot_index != -1 and last_dot_index != 0:
-        ggn_ext = str(file)[last_dot_index + 1:]
-        
-        if ggn_ext.isalpha() and len(ggn_ext) <= 9:
-            if ggn_ext.lower() in VIDEO_EXTENSIONS:
-                original_file_name = str(file)[:last_dot_index]
-                file_extension = 'mp4'
-            else:
-                original_file_name = str(file)[:last_dot_index]
-                file_extension = ggn_ext
-        else:
-            original_file_name = str(file)[:last_dot_index]
-            file_extension = 'mp4'
-    else:
-        original_file_name = str(file)
-        file_extension = 'mp4'
-        
+    custom_rename_tag = get_user_rename_preference(sender)
+
+    # Set default base name if none exists
+    base_name = "RealPirates_File"
+
+    # Extract extension
+    ext = os.path.splitext(file)[-1] or ".mp4"
+    if not ext or len(ext) > 6:
+        ext = ".mp4"  # fallback to mp4 if Telegram doesn't give usable extension
+
+    # Clean filename with replacements
     for word in delete_words:
-        original_file_name = original_file_name.replace(word, "")
+        base_name = base_name.replace(word, "")
 
     for word, replace_word in replacements.items():
-        original_file_name = original_file_name.replace(word, replace_word)
+        base_name = base_name.replace(word, replace_word)
 
-    new_file_name = f"{original_file_name} {custom_rename_tag}.{file_extension}"
+    # Final filename
+    new_file_name = f"{base_name} {custom_rename_tag}{ext}"
     await asyncio.to_thread(os.rename, file, new_file_name)
     return new_file_name
 
