@@ -156,7 +156,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
             uploaded = await fast_upload(
                 gf, file,
                 reply=progress_message,
-                name=None,
+                name=huu,
                 progress_bar_function=lambda done, total: progress_callback(done, total, sender)
             )
             await progress_message.delete()
