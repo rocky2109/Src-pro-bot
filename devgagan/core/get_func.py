@@ -943,7 +943,7 @@ async def rename_file(file, sender):
     base_name = os.path.basename(base_name)  # Only filename without path
 
     # ✅ Replace @mention with @Real_Pirates
-    base_name = re.sub(r'@\w+', '@Real_Pirates', base_name)
+    base_name = re.sub(r'@\w+', '@II_Way_to_Success_II', base_name)
 
     # 🔁 Apply custom word deletion
     for word in delete_words:
