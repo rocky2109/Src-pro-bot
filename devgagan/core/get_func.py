@@ -525,17 +525,23 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
     return await app.copy_message(target_chat_id, msg.chat.id, msg.id, reply_to_message_id=topic_id)
     
 
+
 def format_caption(original_caption, sender, custom_caption):
     delete_words = load_delete_words(sender)
     replacements = load_replacement_words(sender)
 
-    # Remove and replace words in the caption
+    # ✅ Replace all @mentions with @Real_Pirates
+    original_caption = re.sub(r'@\w+', '@Real_Pirates', original_caption)
+
+    # 🔁 Apply word deletion
     for word in delete_words:
         original_caption = original_caption.replace(word, '  ')
+
+    # 🔁 Apply replacements
     for word, replace_word in replacements.items():
         original_caption = original_caption.replace(word, replace_word)
 
-    # Append custom caption if available
+    # 🔧 Return formatted caption
     return f"{original_caption}\n\n__**{custom_caption}**__" if custom_caption else original_caption
 
     
