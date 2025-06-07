@@ -82,7 +82,7 @@ async def token_handler(client, message):
         ])
          
         await message.reply_photo(
-            msg.photo.file_id,
+            image_url,  # Using your custom image URL instead of msg.photo.file_id
             caption=(
                 "Hi 👋 Welcome, Wanna intro...?\n\n"
                 "✳️ I can save posts from channels or groups where forwarding is off.\n"
@@ -90,7 +90,7 @@ async def token_handler(client, message):
             ),
             reply_markup=keyboard
         )
-        return  
+        return
  
     param = message.command[1] if len(message.command) > 1 else None
     freecheck = await chk_user(message, user_id)
