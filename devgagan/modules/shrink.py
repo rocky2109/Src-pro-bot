@@ -14,7 +14,7 @@
 # ---------------------------------------------------
 
 from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 import random
 import requests
 import string
@@ -24,8 +24,7 @@ from devgagan.core.func import *
 from datetime import datetime, timedelta
 from motor.motor_asyncio import AsyncIOMotorClient
 from config import MONGO_DB, WEBSITE_URL, AD_API, LOG_GROUP  
-from pyrogram.types import Message 
- 
+
 tclient = AsyncIOMotorClient(MONGO_DB)
 tdb = tclient["telegram_bot"]
 token = tdb["tokens"]
