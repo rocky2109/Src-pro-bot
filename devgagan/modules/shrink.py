@@ -150,10 +150,12 @@ async def id_command(client, message: Message):
     reply = message.reply_to_message
     user = reply.from_user if reply else message.from_user
 
-    user_id = user.id if user else "❌ Not found"
+    user_id = user.id if user else "🚫 Not available"
+    first_name = user.first_name if user else "Anonymous or Channel"
+
     chat_id = message.chat.id
     reply_msg_id = reply.message_id if reply else "None"
-    first_name = user.first_name if user else "Unknown"
+    chat_type = message.chat.type.capitalize()
 
     text = (
         "╭─────[ 🪪 ID DETAILS ]─────╮\n"
@@ -161,7 +163,7 @@ async def id_command(client, message: Message):
         f"🆔 User ID  : `{user_id}`\n"
         f"💬 Chat ID  : `{chat_id}`\n"
         f"📎 Msg ID   : `{reply_msg_id}`\n"
-        f"🌐 Type     : `{message.chat.type.capitalize()}`\n"
+        f"🌐 Type     : `{chat_type}`\n"
         "╰─────────────────────────╯"
     )
 
