@@ -24,31 +24,6 @@ from pyrogram.raw.types import InputUserSelf
 
 from pyrogram.types import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
 
-@app.on_message(filters.command("id"))
-async def id_command(client, message: Message):
-    reply = message.reply_to_message
-    user = reply.from_user if reply else message.from_user
-    chat = message.chat
-
-    user_id = user.id if user else "🚫 Not available"
-    first_name = user.first_name if user else "Anonymous or Channel"
-    reply_msg_id = reply.message_id if reply else "None"
-    chat_type = chat.type.capitalize()
-    chat_id = chat.id
-
-    text = (
-        "╭───[ 🆔 Telegram ID Info ]───╮\n"
-        f"👤 Name     : `{first_name}`\n"
-        f"🆔 User ID  : `{user_id}`\n"
-        f"💬 Chat ID  : `{chat_id}`\n"
-        f"📎 Msg ID   : `{reply_msg_id}`\n"
-        f"🌐 Chat Type: `{chat_type}`\n"
-        "╰────────────────────────────╯\n"
-        "⚓ Powered by @Real_Pirates"
-    )
-
-    await message.reply_text(text, quote=True)
-
 
 @app.on_message(filters.command("set"))
 async def set(_, message):
