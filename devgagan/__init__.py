@@ -62,16 +62,26 @@ async def setup_database():
 
 async def restrict_bot():
     global BOT_ID, BOT_NAME, BOT_USERNAME
+
     await setup_database()
     await app.start()
+
     getme = await app.get_me()
     BOT_ID = getme.id
     BOT_USERNAME = getme.username
-    if getme.last_name:
-        BOT_NAME = getme.first_name + " " + getme.last_name
-    else:
-        BOT_NAME = getme.first_name
+    BOT_NAME = f"{getme.first_name} {getme.last_name}" if getme.last_name else getme.first_name
+
     if STRING:
         await pro.start()
 
-loop.run_until_complete(restrict_bot())
+    # ✅ Send "Bot is live" message to bot's own PM
+    try:
+        await app.send_message(
+            chat_id=BOT_ID,
+            text="✅ **Save Restricted Bot is now LIVE!**\n\n"
+                 "🔐 Ready to unlock restricted posts.\n"
+                 "Bot Made by CHOSEN ONE ⚝"
+        )
+        print("✅ Startup message sent to bot's PM.")
+    except Exception as e:
+        print(f"❌ Could not send bot live message: {e}")
