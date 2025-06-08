@@ -150,26 +150,3 @@ async def smart_handler(client, message):
         )
         await message.reply("Click the button below to verify your free access token: \n\n> What will you get ? \n1. No time bound upto 3 hours \n2. Batch command limit will be FreeLimit + 20 \n3. All functions unlocked", reply_markup=button)
  
-@app.on_message(filters.command("id"))
-async def id_command(client, message: Message):
-    reply = message.reply_to_message
-    user = reply.from_user if reply else message.from_user
-
-    user_id = user.id if user else "🚫 Not available"
-    first_name = user.first_name if user else "Anonymous or Channel"
-
-    chat_id = message.chat.id
-    reply_msg_id = reply.message_id if reply else "None"
-    chat_type = message.chat.type.capitalize()
-
-    text = (
-        "╭─────[ 🪪 ID DETAILS ]─────╮\n"
-        f"👤 Name     : `{first_name}`\n"
-        f"🆔 User ID  : `{user_id}`\n"
-        f"💬 Chat ID  : `{chat_id}`\n"
-        f"📎 Msg ID   : `{reply_msg_id}`\n"
-        f"🌐 Type     : `{chat_type}`\n"
-        "╰─────────────────────────╯"
-    )
-
-    await message.reply_text(text, quote=True)
