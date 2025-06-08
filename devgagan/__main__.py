@@ -2,11 +2,9 @@ import asyncio
 import importlib
 import gc
 from pyrogram import idle
-from devgagan import app  # ✅ Make sure 'app' is imported
 from devgagan.modules import ALL_MODULES
 from devgagan.core.mongo.plans_db import check_and_remove_expired_users
-from config import LOG_GROUP  # ✅ Must be a valid chat ID (e.g., -100...)
-
+from devgagan import app  # ✅ Import app instance
 from aiojobs import create_scheduler
 
 loop = asyncio.get_event_loop()
@@ -21,22 +19,33 @@ async def schedule_expiry_check():
 async def devggn_boot():
     for all_module in ALL_MODULES:
         importlib.import_module("devgagan.modules." + all_module)
-    
+
     print("""
 ---------------------------------------------------
 📂 Bot Deployed successfully ...
-...
+📝 Description: A Pyrogram bot for downloading files from Telegram channels or groups 
+                and uploading them back to Telegram.
+👨‍💻 Author: Gagan
+🌐 GitHub: https://github.com/devgaganin/
+📬 Telegram: https://t.me/team_spy_pro
+▶️ YouTube: https://youtube.com/@dev_gagan
+🗓️ Created: 2025-01-11
+🔄 Last Modified: 2025-01-11
+🛠️ Version: 2.0.5
+📜 License: MIT License
 ---------------------------------------------------
 """)
 
-    # ✅ Send startup message
+    # ✅ Send "Bot is live" message to bot's own PM
     try:
+        me = await app.get_me()
         await app.send_message(
-            LOG_GROUP,
-            "✅ **Save Restricted Bot is now live!**\n\n⚙️ All systems are online.\n⚓ Powered by @Real_Pirates"
+            chat_id=me.id,
+            text="✅ **Bot is now LIVE!**\n\n🧠 Ready to save restricted content.\n⚓ Powered by @Real_Pirates"
         )
+        print("✅ Startup message sent to bot's PM.")
     except Exception as e:
-        print(f"❌ Couldn't send bot live message: {e}")
+        print(f"❌ Failed to send startup PM: {e}")
 
     asyncio.create_task(schedule_expiry_check())
     print("Auto removal started ...")
