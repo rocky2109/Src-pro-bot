@@ -83,9 +83,15 @@ async def token_handler(client, message):
         await message.reply_photo(
             image_url,  # Using your custom image URL instead of msg.photo.file_id
             caption=(
-                "Hi 👋 Welcome, Wanna intro...?\n\n"
-                "✳️ I can save posts from channels or groups where forwarding is off.\n"
-                "✳️ Simply send the post link of a public channel.\n\nFor private channels, do /login. Send /help to know more."
+                "👋 **Welcome to Save Restricted Bot!**\n\n"
+                "🔒 I help you **unlock and save content** from channels or groups that don't allow forwarding.\n\n"
+                "📌 **How to use me:**\n"
+                "➤ Just **send me the post link** if it's Public\n"       
+                "🔓 I'll fetch the media or message for you.\n\n"
+                "🔐 **Private channel post?**\n"
+                "➤ First do /login to save posts from Private Channel\n\n"
+                "💡 Need help? Send /help for more details.\n\n"
+                "⚡ Bot Made by CHOSEN ONE ⚝"
             ),
             reply_markup=keyboard
         )
