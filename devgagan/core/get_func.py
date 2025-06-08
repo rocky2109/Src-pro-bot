@@ -63,15 +63,6 @@ async def fetch_upload_method(user_id):
     user_data = collection.find_one({"user_id": user_id})
     return user_data.get("upload_method", "Pyrogram") if user_data else "Pyrogram"
 
-def format_caption(caption: str, sender=None, custom_caption=None) -> str:
-    if not caption:
-        return custom_caption or ""
-
-    # Replace @mentions
-    caption = re.sub(r'@\w+', '@Real_Pirates', caption)
-
-    # Replace links (http, https, www)
-    caption = re.sub(r'https?://\S+|www\.\S+', 'https://t.me/Real_Pirates', caption)
 
 def format_caption_to_html(caption: str) -> str:
     if not caption:
@@ -87,9 +78,7 @@ def format_caption_to_html(caption: str) -> str:
     caption = re.sub(r"~~(.*?)~~", r"<s>\1</s>", caption)
     caption = re.sub(r"\|\|(.*?)\|\|", r"<details>\1</details>", caption)
     caption = re.sub(r"\[(.*?)\]\((.*?)\)", r'<a href="\2">\1</a>', caption)
-    caption = re.sub(r'@\w+', '@Real_Pirates', caption)
-    caption = re.sub(r'https?://\S+|www\.\S+', 'https://t.me/Real_Pirates', caption)
-
+    
     return caption.strip()
 
     
@@ -531,13 +520,16 @@ def format_caption(original_caption, sender, custom_caption):
     replacements = load_replacement_words(sender)
 
     # ✅ Replace all @mentions with @Real_Pirates
-    original_caption = re.sub(r'@\w+', '@Real_Pirates', original_caption)
+    original_caption = re.sub(r'@\w+', '@II_LevelUP_II', original_caption)
 
-    # 🔁 Apply word deletion
+    # ✅ Replace all URLs with your custom Telegram link
+    original_caption = re.sub(r'https?://\S+|www\.\S+', 'https://t.me/+7R-7p7jVoz9mM2M1', original_caption)
+
+    # 🔁 Delete unwanted words
     for word in delete_words:
         original_caption = original_caption.replace(word, '  ')
 
-    # 🔁 Apply replacements
+    # 🔁 Replace custom words
     for word, replace_word in replacements.items():
         original_caption = original_caption.replace(word, replace_word)
 
