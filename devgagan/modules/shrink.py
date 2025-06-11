@@ -90,7 +90,7 @@ async def token_handler(client, message):
                 "🔓 I'll fetch the media or message for you.\n\n"
                 "🔐 **Private channel post?**\n"
                 "➤ First do /login to save posts from Private Channel\n\n"
-                "💡 Need help? Send /help for more details.\n\n"
+                "💡 Need help? Send /guide for more details also use /help\n\n"
                 "⚡ Bot Made by CHOSEN ONE ⚝"
             ),
             reply_markup=keyboard
