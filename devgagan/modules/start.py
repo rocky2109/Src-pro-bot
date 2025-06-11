@@ -21,10 +21,7 @@ from devgagan.core.func import *
 from pyrogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, Message
 from pyrogram.raw.functions.bots import SetBotInfo
 from pyrogram.raw.types import InputUserSelf
-
-from pyrogram.types import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
-
-
+ 
 @app.on_message(filters.command("set"))
 async def set(_, message):
     if message.from_user.id not in OWNER_ID:
@@ -244,5 +241,79 @@ async def see_terms(client, callback_query):
         ]
     )
     await callback_query.message.edit_text(terms_text, reply_markup=buttons)
- 
- 
+
+@app.on_message(filters.command("guide"))
+async def guide_command(_, message: Message):
+    image_url = "https://i.postimg.cc/BXkchVpY/image.jpg"  # Direct image URL from PostImage
+    await message.reply_photo(
+        photo=image_url,
+        caption=(
+            "📘 **How to Use Save Restricted Bot**\n\n"
+            "If you want to Download Posts From Public Channels/Groups Just Send me **Post Link**\n"        
+            "🔓 I'll unlock content from restricted channels or groups.\n\n"
+            "Use /settings for Settings 🌝\n\n"
+            "Use Next Button For Private Channels/Groups Guide 👇"
+        ),
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("➡️ Next", callback_data="guide_page_1")]
+        ]),
+        quote=True
+    )
+
+# Second page callback handler
+@app.on_callback_query(filters.regex("^guide_page_2$"))  # ^ and $ ensure exact match
+async def guide_page_2(_, query: CallbackQuery):
+    await query.message.edit_text(
+        "🛠️ **More Features 😎**\n\n"
+        "✅ Supported post formats:\n\n"
+        "Public Link:\n `https://t.me/public_channel/1234`\n\n"
+        "Private Link:\n `https://t.me/c/123456789/55`\n\n"
+        "💡 Use /login only for private source.\n"
+        "Use /id to get user or chat ID.\n\n"
+        "Use /batch to download multiple posts at once 💀\n\n"
+        "Powered by CHOSEN ONE ⚝",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("⬅️ Back", callback_data="guide_page_1")]
+        ])
+    )
+
+# Back to first page
+@app.on_callback_query(filters.regex("^guide_page_1$"))  # ^ and $ ensure exact match
+async def guide_page_1(_, query: CallbackQuery):
+    await query.message.edit_text(
+        "**📘 How to Use @SRC_PRO_BOT Guide 👇**\n\n"
+        "💡 **For Private Channels/Groups**\n\n"
+        "**How to download or forward posts from Private Channel/Groups Where Save is Restricted 💀**\n"
+        "────────────────────\n"
+        "🔰 Go to bot: **@SRC_PRO_BOT**\n"
+        "➡️ Send /start\n"
+        "➡️ Send /login\n"
+        "────────────────────\n"
+        "**Now 📲 Enter your mobile number\n like:**\n"
+        "`+91XXXXXXXXXX`\n\n"
+        "📨 You’ll get an OTP from Telegram official chat.\n"
+        "────────────────────\n"
+        "**🔢 Enter the OTP with spaces between digits.**\n"
+        "Example: If OTP is `54321`,\n enter: `5 4 3 2 1`\n\n"
+        "✅ You’ll be logged in successfully!\n"
+        "────────────────────\n"
+        "⚡ Now use /batch to download multiple posts.\n"
+        "▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭\n\n"
+        "**हिंदी में 👇**\n\n"
+        "**@SRC_PRO_BOT** का कैसे उपयोग करें\n"
+        "/start कमांड भेजें फिर\n"
+        "/login कमांड भेजें\n"
+        "────────────────────\n"
+        "📲 अब अपना मोबाइल नंबर दर्ज करें:\n"
+        "`+91XXXXXXXXXX`\n\n"
+        "────────────────────\n"
+        "📨 Telegram की official चैट से OTP आएगा\n"     
+        "🔢 OTP को स्पेस के साथ दर्ज करें\n"
+        "उदाहरण: 5 4 3 2 1\n\n"
+        "✅ अब आप सफलतापूर्वक बॉट में लॉग इन हो जाएंगे\n"
+        "────────────────────\n"
+        "⚡ एक बार में कई पोस्ट डाउनलोड करने के लिए /batch का उपयोग करें।",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("More Features 😎", callback_data="guide_page_2")]
+        ])
+)
