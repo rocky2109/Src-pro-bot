@@ -117,7 +117,7 @@ async def progress_bar(current, total, ud_type, message, start):
         )
         try:
             await message.edit(
-                text="{}\n│ {}".format(ud_type, tmp),)             
+                text="{} {}".format(ud_type, tmp),)             
         except:
             pass
 
