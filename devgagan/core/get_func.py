@@ -515,15 +515,22 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
     
 
 
+import re
+
 def format_caption(original_caption, sender, custom_caption):
     delete_words = load_delete_words(sender)
     replacements = load_replacement_words(sender)
 
-    # ✅ Replace all @mentions with @Real_Pirates
+    # ✅ Replace all @mentions with your bot's handle
     original_caption = re.sub(r'@\w+', '@Src_pro_bot', original_caption)
 
-    # ✅ Replace all URLs with your custom Telegram link
+    # ✅ Replace all URLs with your custom invite link
     original_caption = re.sub(r'https?://\S+|www\.\S+', 'https://t.me/+7R-7p7jVoz9mM2M1', original_caption)
+
+    # ✅ Remove everything after 'Extracted By ...'
+    original_caption = re.sub(r'Extracted By.*', '@Src_pro_bot', original_caption, flags=re.IGNORECASE)
+    original_caption = re.sub(r'Downloaded By.*', '@Src_pro_bot', original_caption, flags=re.IGNORECASE)
+
 
     # 🔁 Delete unwanted words
     for word in delete_words:
@@ -534,7 +541,7 @@ def format_caption(original_caption, sender, custom_caption):
         original_caption = original_caption.replace(word, replace_word)
 
     # 🔧 Return formatted caption
-    return f"{original_caption}\n\n__**{custom_caption}**__" if custom_caption else original_caption
+    return f"{original_caption.strip()}\n\n__**{custom_caption}**__" if custom_caption else original_caption.strip()
 
     
 # ------------------------ Button Mode Editz FOR SETTINGS ----------------------------
