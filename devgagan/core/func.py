@@ -82,12 +82,12 @@ async def get_seconds(time_string):
     else:
         return 0
 PROGRESS_BAR = """
-  ┉━┉━┉━┉┉━┉━┉━┉┉━┉━
+   ┉━┉━┉━┉┉━┉━┉━┉┉━┉━
 *┋ **__Total Size:__** {2}
 *┋ **__Completed:__** {1}
-*┋ **__Bytes:__** {0}%
+*┋ **__Progress:__** {0}%
 *┋ **__Speed:__** {3}/s
-*┋ **__ETA:__** {4}
+*┋ **__EST:__** {4}\n
  ╚═══━━━──⚝──━━━═══╝
 """
 async def progress_bar(current, total, ud_type, message, start):
@@ -119,7 +119,7 @@ async def progress_bar(current, total, ud_type, message, start):
         )
         try:
             await message.edit(
-                text="{}\n  {}".format(ud_type, tmp),)             
+                text="{}    {}".format(ud_type, tmp),)             
         except:
             pass
 
@@ -245,13 +245,12 @@ async def progress_callback(current, total, progress_message):
         current_mb = current / (1024 * 1024)  
         total_mb = total / (1024 * 1024)      
         await progress_message.edit(
-    f"╭──────────────────╮\n"
-    f"│        **__Uploading...__**       \n"
-    f"├──────────\n"
+    f"╔══━⚡️Uploading⚡️━══╗\n"
+    f" ┉━┉━┉━┉┉━┉━┉━┉┉━┉━\n"
     f"│ {progress_bar}\n\n"
     f"│ **__Progress:__** {percent:.2f}%\n"
-    f"│ **__Uploaded:__** {current_mb:.2f} MB / {total_mb:.2f} MB\n"
-    f"╰──────────────────╯\n\n"
+    f"│ **__Uploaded:__** {current_mb:.2f} MB / {total_mb:.2f} MB\n\n"
+    f" ╚═══━━━──⚝──━━━═══╝\n\n"
     f"**__Pwrd by CHOSEN ONE ⚝__**"
         )
 
@@ -285,7 +284,7 @@ async def prog_bar(current, total, ud_type, message, start):
         )
         try:
             await message.edit_text(
-                text="{}\n {}".format(ud_type, tmp),)             
+                text="{}     {}".format(ud_type, tmp),)             
 
         except:
             pass
