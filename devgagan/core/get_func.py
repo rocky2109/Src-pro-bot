@@ -285,19 +285,19 @@ async def get_msg(userbot, sender, edit_id, msg_link, i, message):
         if msg.audio:
             result = await app.send_audio(target_chat_id, file, caption=caption, reply_to_message_id=topic_id)
             await result.copy(LOG_GROUP)
-            await edit.delete(2)
+            await edit.delete(1)
             return
         
         if msg.voice:
             result = await app.send_voice(target_chat_id, file, reply_to_message_id=topic_id)
             await result.copy(LOG_GROUP)
-            await edit.delete(2)
+            await edit.delete(1)
             return
 
         if msg.photo:
             result = await app.send_photo(target_chat_id, file, caption=caption, reply_to_message_id=topic_id)
             await result.copy(LOG_GROUP)
-            await edit.delete(2)
+            await edit.delete(1)
             return
 
         # Upload media
@@ -321,7 +321,7 @@ async def get_msg(userbot, sender, edit_id, msg_link, i, message):
         if file and os.path.exists(file):
             os.remove(file)
         if edit:
-            await edit.delete(2)
+            await edit.delete(1)
         
 async def clone_message(app, msg, target_chat_id, topic_id, edit_id, log_group):
     edit = await app.edit_message_text(target_chat_id, edit_id, "Cloning...")
