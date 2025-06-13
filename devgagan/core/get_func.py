@@ -520,7 +520,7 @@ def format_caption(original_caption, sender, custom_caption):
     replacements = load_replacement_words(sender)
 
     # ✅ Replace all @mentions with @Real_Pirates
-    original_caption = re.sub(r'@\w+', '@II_LevelUP_II', original_caption)
+    original_caption = re.sub(r'@\w+', '@Src_pro_bot', original_caption)
 
     # ✅ Replace all URLs with your custom Telegram link
     original_caption = re.sub(r'https?://\S+|www\.\S+', 'https://t.me/+7R-7p7jVoz9mM2M1', original_caption)
@@ -617,13 +617,13 @@ async def send_settings_message(chat_id, user_id):
     
     # Define the rest of the buttons
     buttons = [
-        [Button.inline("Set Chat ID", b'setchat'), Button.inline("Set Rename Tag", b'setrename')],
-        [Button.inline("Caption", b'setcaption'), Button.inline("Replace Words", b'setreplacement')],
-        [Button.inline("Remove Words", b'delete'), Button.inline("Reset", b'reset')],
-        [Button.inline("Session Login", b'addsession'), Button.inline("Logout", b'logout')],
-        [Button.inline("Set Thumbnail", b'setthumb'), Button.inline("Remove Thumbnail", b'remthumb')],
-        [Button.inline("PDF Wtmrk", b'pdfwt'), Button.inline("Video Wtmrk", b'watermark')],
-        [Button.inline("Upload Method", b'uploadmethod')],  # Include the dynamic Fast DL button
+        [Button.inline("🆔 Set Chat ID", b'setchat'), Button.inline("✏️ Set Rename Tag", b'setrename')],
+        [Button.inline("🔆 Caption", b'setcaption'), Button.inline("💠 Replace Words", b'setreplacement')],
+        [Button.inline("‼️ Remove Words", b'delete'), Button.inline("♻️ Reset", b'reset')],
+        [Button.inline("🎗️ Session Login", b'addsession'), Button.inline("⛔ Logout", b'logout')],
+        [Button.inline("🖼️ Set Thumbnail", b'setthumb'), Button.inline("🧲 Remove Thumbnail", b'remthumb')],
+        [Button.inline("🗂️ PDF Wtmrk", b'pdfwt'), Button.inline("🎥 Video Wtmrk", b'watermark')],
+        [Button.inline("📤 Upload Method", b'uploadmethod')],  # Include the dynamic Fast DL button
         [Button.url("Report Errors", "https://t.me/GeniusJunctionX")]
     ]
 
@@ -941,7 +941,7 @@ async def rename_file(file, sender):
     base_name = os.path.basename(base_name)  # Only filename without path
 
     # ✅ Replace @mention with @Real_Pirates
-    base_name = re.sub(r'@\w+', '@II_Way_to_Success_II', base_name)
+    base_name = re.sub(r'@\w+', '@Src_pro_bot', base_name)
 
     # 🔁 Apply custom word deletion
     for word in delete_words:
