@@ -82,11 +82,11 @@ async def get_seconds(time_string):
     else:
         return 0
 PROGRESS_BAR = """\n
-│ **__Completed:__** {1}/{2}
-│ **__Bytes:__** {0}%
-│ **__Speed:__** {3}/s
-│ **__ETA:__** {4}
-╰─────────────────────╯
+*┋· ‌‌‌‌ **__Completed:__** {1}/{2}
+*┋· ‌‌‌‌ **__Bytes:__** {0}%
+*┋· ‌‌‌‌ **__Speed:__** {3}/s
+*┋· ‌‌‌‌ **__ETA:__** {4}
+ ╰──────────────────╯
 """
 async def progress_bar(current, total, ud_type, message, start):
 
