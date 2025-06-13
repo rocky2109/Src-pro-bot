@@ -82,8 +82,8 @@ async def get_seconds(time_string):
     else:
         return 0
 PROGRESS_BAR = """
+*┋ **__Total Size:__** {2}
 *┋ **__Completed:__** {1}
-*┋ **__Total:__** {2}
 *┋ **__Bytes:__** {0}%
 *┋ **__Speed:__** {3}/s
 *┋ **__ETA:__** {4}
@@ -118,7 +118,7 @@ async def progress_bar(current, total, ud_type, message, start):
         )
         try:
             await message.edit(
-                text="{} {}".format(ud_type, tmp),)             
+                text="{}   ┉━┉━┉━┉┉━┉━┉━┉┉━┉━\n{}".format(ud_type, tmp),)             
         except:
             pass
 
