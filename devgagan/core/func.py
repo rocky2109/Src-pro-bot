@@ -81,7 +81,7 @@ async def get_seconds(time_string):
         return value * 86400 * 365
     else:
         return 0
-PROGRESS_BAR = """\n
+PROGRESS_BAR = """
 *┋ **__Completed:__** {1}/{2}
 *┋ **__Bytes:__** {0}%
 *┋ **__Speed:__** {3}/s
