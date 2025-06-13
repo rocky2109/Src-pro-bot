@@ -275,7 +275,7 @@ async def get_msg(userbot, sender, edit_id, msg_link, i, message):
             msg,
             file_name=file_name,
             progress=progress_bar,
-            progress_args=("╭─────────────────────╮\n│      **__Downloading__...**\n├─────────────────────", edit, time.time())
+            progress_args=("╭─────────────────────╮\n│      **__Downloading 📩__...**\n├─────────────────────", edit, time.time())
         )
         
         caption = await get_final_caption(msg, sender)
@@ -347,14 +347,14 @@ async def handle_sticker(app, msg, target_chat_id, topic_id, edit_id, log_group)
 
 async def get_media_filename(msg):
     if msg.document:
-        return msg.document.file_name or "Document_By_Real_Pirates.txt"
+        return msg.document.file_name or "Document_By_@Src_pro_bot.txt"
     if msg.video:
-        return msg.video.file_name or "Video_By_Real_Pirates.mp4"
+        return msg.video.file_name or "Video_By_@Src_pro_bot.mp4"
     if msg.audio:
-        return msg.audio.file_name or "Audio_By_Real_Pirates.mp3"
+        return msg.audio.file_name or "Audio_By_@Src_pro_bot.mp3"
     if msg.photo:
-        return "Image_By_Real_Pirates.jpg"
-    return "File_By_Real_Pirates.dat"
+        return "Image_By_@Src_pro_bot.jpg"
+    return "File_By_@Src_pro_bot.dat"
 
 
 
@@ -378,10 +378,10 @@ async def get_final_caption(msg, sender):
     final_caption = f"{original_caption}\n\n{custom_caption}" if custom_caption else original_caption
 
     # Replace @mentions with @Real_Pirates
-    final_caption = re.sub(r'@\w+', '@Real_Pirates', final_caption)
+    final_caption = re.sub(r'@\w+', '@II_LevelUP_II', final_caption)
 
     # Replace all links with your channel link
-    final_caption = re.sub(r'https?://\S+|www\.\S+', 'https://t.me/Real_Pirates', final_caption)
+    final_caption = re.sub(r'https?://\S+|www\.\S+', 'https://t.me/II_Way_to_Success_II', final_caption)
 
     # Perform additional replacements from user-defined rules
     replacements = load_replacement_words(sender)
@@ -528,8 +528,8 @@ def format_caption(original_caption, sender, custom_caption):
     original_caption = re.sub(r'https?://\S+|www\.\S+', 'https://t.me/+7R-7p7jVoz9mM2M1', original_caption)
 
     # ✅ Remove everything after 'Extracted By ...'
-    original_caption = re.sub(r'Extracted By.*', '@Src_pro_bot', original_caption, flags=re.IGNORECASE)
-    original_caption = re.sub(r'Downloaded By.*', '@Src_pro_bot', original_caption, flags=re.IGNORECASE)
+    original_caption = re.sub(r'(Extracted By)[^\n]*', r'\1 @Src_pro_bot', original_caption, flags=re.IGNORECASE)
+    original_caption = re.sub(r'(Downloaded By)[^\n]*', r'\1 @Src_pro_bot', original_caption, flags=re.IGNORECASE)
 
 
     # 🔁 Delete unwanted words
@@ -631,7 +631,7 @@ async def send_settings_message(chat_id, user_id):
         [Button.inline("🖼️ Set Thumbnail", b'setthumb'), Button.inline("🧲 Remove Thumbnail", b'remthumb')],
         [Button.inline("🗂️ PDF Wtmrk", b'pdfwt'), Button.inline("🎥 Video Wtmrk", b'watermark')],
         [Button.inline("📤 Upload Method", b'uploadmethod')],  # Include the dynamic Fast DL button
-        [Button.url("Report Errors", "https://t.me/GeniusJunctionX")]
+        [Button.url("⚠️ Report Errors", "https://t.me/GeniusJunctionX")]
     ]
 
     await gf.send_file(
