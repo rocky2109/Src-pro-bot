@@ -275,7 +275,7 @@ async def get_msg(userbot, sender, edit_id, msg_link, i, message):
             msg,
             file_name=file_name,
             progress=progress_bar,
-            progress_args=("╭─────────────────────╮\n│      **__Downloading 📩__...**\n├─────────────────────", edit, time.time())
+            progress_args=("╔══━━⚡️ Downloading ⚡️━━══╗\n│      \n├─────────────────────", edit, time.time())
         )
         
         caption = await get_final_caption(msg, sender)
