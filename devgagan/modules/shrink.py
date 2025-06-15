@@ -81,11 +81,14 @@ async def token_handler(client, message):
             [join_button],   
             [premium]    
         ])
-         
+        
+        # Mention the user in the caption
+        user_mention = message.from_user.mention if message.from_user else "User"
+        
         await message.reply_photo(
-            image_url,  # Using your custom image URL instead of msg.photo.file_id
+            image_url,
             caption=(
-                "👋 **Welcome to Save Restricted Bot!**\n\n"
+                f"👋 **Hello, {user_mention}! Welcome to Save Restricted Bot!**\n\n"
                 "🔒 I help you **unlock and save content** from channels or groups that don't allow forwarding.\n\n"
                 "📌 **How to use me:**\n"
                 "➤ Just **send me the post link** if it's Public\n"       
