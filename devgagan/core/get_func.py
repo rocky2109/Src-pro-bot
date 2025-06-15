@@ -499,51 +499,32 @@ async def copy_message_with_chat_id(app, userbot, sender, chat_id, message_id, e
             os.remove(file)
 
 
-
 async def send_media_message(app, target_chat_id, msg, caption, topic_id):
     try:
         file_name = None
 
-        # Extract filename from document or video
+        # Try to get file name if available
         if msg.document and msg.document.file_name:
             file_name = msg.document.file_name
         elif msg.video and msg.video.file_name:
             file_name = msg.video.file_name
         elif msg.caption:
-            file_name = None
+            file_name = None  # optional fallback, no file_name for photos
         else:
             file_name = None
 
-        # Replace only Telegram links
-        if caption:
-            caption = re.sub(
-                r'https?://t\.me/[^\s]+|https?://telegram\.me/[^\s]+',
-                'https://t.me/+7R-7p7jVoz9mM2M1',
-                caption
-            )
-
-        # Format blockquote (each line with > )
-        def blockquote(text: str) -> str:
-            return "\n".join([f"> {line}" for line in text.strip().splitlines()]) if text else ""
-
-        # If no caption provided but filename exists, use filename
-        if not caption and file_name:
-            caption = f"📁 **{file_name}**"
-        elif caption and file_name:
-            caption = f"📁 **{file_name}**\n\n{blockquote(caption)}"
-        elif caption:
-            caption = blockquote(caption)
+        # Compose final caption
+        if file_name:
+            caption = f"📁 **{file_name}**\n\n{caption or ''}"
         else:
-            caption = "📥"  # fallback
+            caption = caption or ''
 
-        # Send the appropriate media
         if msg.video:
             return await app.send_video(
                 target_chat_id,
                 msg.video.file_id,
                 caption=caption,
-                reply_to_message_id=topic_id,
-                parse_mode="markdown"
+                reply_to_message_id=topic_id
             )
 
         if msg.document:
@@ -551,30 +532,8 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
                 target_chat_id,
                 msg.document.file_id,
                 caption=caption,
-                reply_to_message_id=topic_id,
-                parse_mode="markdown"
+                reply_to_message_id=topic_id
             )
-
-        if msg.photo:
-            return await app.send_photo(
-                target_chat_id,
-                msg.photo.file_id,
-                caption=caption,
-                reply_to_message_id=topic_id,
-                parse_mode="markdown"
-            )
-
-    except Exception as e:
-        print(f"❌ Error while sending media: {e}")
-
-    # Fallback copy
-    return await app.copy_message(
-        target_chat_id,
-        msg.chat.id,
-        msg.id,
-        reply_to_message_id=topic_id
-    )
-
 import re
 
 def format_caption(original_caption, sender, custom_caption):
