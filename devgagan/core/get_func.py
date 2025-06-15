@@ -504,17 +504,17 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
     try:
         file_name = None
 
-        # Try to get file name if available
+        # Extract filename from document or video
         if msg.document and msg.document.file_name:
             file_name = msg.document.file_name
         elif msg.video and msg.video.file_name:
             file_name = msg.video.file_name
         elif msg.caption:
-            file_name = None  # optional fallback, no file_name for photos
+            file_name = None
         else:
             file_name = None
 
-        # Replace only Telegram links in caption (optional)
+        # Replace only Telegram links
         if caption:
             caption = re.sub(
                 r'https?://t\.me/[^\s]+|https?://telegram\.me/[^\s]+',
@@ -522,18 +522,21 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
                 caption
             )
 
-        # Format caption as blockquote
-        def blockquote(text):
-            return "\n".join([f"> {line}" for line in text.strip().splitlines()])
+        # Format blockquote (each line with > )
+        def blockquote(text: str) -> str:
+            return "\n".join([f"> {line}" for line in text.strip().splitlines()]) if text else ""
 
-        # Compose final caption with blockquote
-        if file_name:
-            formatted_caption = blockquote(caption or "")
-            caption = f"📁 **{file_name}**\n\n{formatted_caption}"
+        # If no caption provided but filename exists, use filename
+        if not caption and file_name:
+            caption = f"📁 **{file_name}**"
+        elif caption and file_name:
+            caption = f"📁 **{file_name}**\n\n{blockquote(caption)}"
+        elif caption:
+            caption = blockquote(caption)
         else:
-            caption = blockquote(caption or "")
+            caption = "📥"  # fallback
 
-        # Send the appropriate media type
+        # Send the appropriate media
         if msg.video:
             return await app.send_video(
                 target_chat_id,
@@ -562,17 +565,15 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
             )
 
     except Exception as e:
-        print(f"Error while sending media: {e}")
+        print(f"❌ Error while sending media: {e}")
 
-    # Fallback
+    # Fallback copy
     return await app.copy_message(
         target_chat_id,
         msg.chat.id,
         msg.id,
         reply_to_message_id=topic_id
     )
-
-
 
 import re
 
