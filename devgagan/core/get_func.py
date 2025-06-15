@@ -592,6 +592,8 @@ def format_caption(original_caption, sender, custom_caption):
     # ✅ Remove everything after 'Extracted By ...'
     original_caption = re.sub(r'(Extracted By)[^\n]*', r'\1 @Src_pro_bot', original_caption, flags=re.IGNORECASE)
     original_caption = re.sub(r'(Downloaded By)[^\n]*', r'\1 @Src_pro_bot', original_caption, flags=re.IGNORECASE)
+    original_caption = re.sub(r'(Downloaded By:)[^\n]*', r'\1 @Src_pro_bot', original_caption, flags=re.IGNORECASE)
+
 
 
     # 🔁 Delete unwanted words
