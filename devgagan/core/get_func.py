@@ -499,6 +499,7 @@ async def copy_message_with_chat_id(app, userbot, sender, chat_id, message_id, e
             os.remove(file)
 
 
+
 async def send_media_message(app, target_chat_id, msg, caption, topic_id):
     try:
         file_name = None
@@ -513,18 +514,33 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
         else:
             file_name = None
 
-        # Compose final caption
-        if file_name:
-            caption = f"📁 **{file_name}**\n\n{caption or ''}"
-        else:
-            caption = caption or ''
+        # Replace only Telegram links in caption (optional)
+        if caption:
+            caption = re.sub(
+                r'https?://t\.me/[^\s]+|https?://telegram\.me/[^\s]+',
+                'https://t.me/+7R-7p7jVoz9mM2M1',
+                caption
+            )
 
+        # Format caption as blockquote
+        def blockquote(text):
+            return "\n".join([f"> {line}" for line in text.strip().splitlines()])
+
+        # Compose final caption with blockquote
+        if file_name:
+            formatted_caption = blockquote(caption or "")
+            caption = f"📁 **{file_name}**\n\n{formatted_caption}"
+        else:
+            caption = blockquote(caption or "")
+
+        # Send the appropriate media type
         if msg.video:
             return await app.send_video(
                 target_chat_id,
                 msg.video.file_id,
                 caption=caption,
-                reply_to_message_id=topic_id
+                reply_to_message_id=topic_id,
+                parse_mode="markdown"
             )
 
         if msg.document:
@@ -532,16 +548,17 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
                 target_chat_id,
                 msg.document.file_id,
                 caption=caption,
-                reply_to_message_id=topic_id
+                reply_to_message_id=topic_id,
+                parse_mode="markdown"
             )
 
         if msg.photo:
-            # No file name for photos, but keep caption if any
             return await app.send_photo(
                 target_chat_id,
                 msg.photo.file_id,
                 caption=caption,
-                reply_to_message_id=topic_id
+                reply_to_message_id=topic_id,
+                parse_mode="markdown"
             )
 
     except Exception as e:
