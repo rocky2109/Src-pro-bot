@@ -64,13 +64,15 @@ async def is_user_verified(user_id):
  
 @app.on_message(filters.command("start"))
 async def token_handler(client, message):
-    """Handle the /token command."""
+    """Handle the /start command."""
     join = await subscribe(client, message)
     if join == 1:
         return
+    
     chat_id = "save_restricted_content_bots"
     msg = await app.get_messages(chat_id, 796)
     user_id = message.chat.id
+    
     if len(message.command) <= 1:
         image_url = "https://freeimage.host/i/F35exwP"  # must end with .jpg/.png etc.
         join_button = InlineKeyboardButton("Main Channel", url="https://t.me/II_LevelUP_II")
