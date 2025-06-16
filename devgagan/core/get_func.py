@@ -534,7 +534,6 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
                 caption=caption,
                 reply_to_message_id=topic_id
             )
-import re
 
 def format_caption(original_caption, sender, custom_caption):
     delete_words = load_delete_words(sender)
