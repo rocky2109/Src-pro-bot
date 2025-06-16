@@ -498,7 +498,6 @@ async def copy_message_with_chat_id(app, userbot, sender, chat_id, message_id, e
         if file and os.path.exists(file):
             os.remove(file)
 
-
 async def send_media_message(app, target_chat_id, msg, caption, topic_id):
     try:
         file_name = None
@@ -533,7 +532,7 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
                 msg.video.file_id,
                 caption=caption,
                 reply_to_message_id=topic_id,
-                parse_mode="markdown"
+                
             )
 
         if msg.document:
@@ -542,7 +541,7 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
                 msg.document.file_id,
                 caption=caption,
                 reply_to_message_id=topic_id,
-                parse_mode="markdown"
+                
             )
 
         if msg.photo:
@@ -551,7 +550,7 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
                 msg.photo.file_id,
                 caption=caption,
                 reply_to_message_id=topic_id,
-                parse_mode="markdown"
+                
             )
 
     except Exception as e:
