@@ -98,7 +98,8 @@ async def token_handler(client, message):
                 "💡 Need help? Send /guide for more details also use /help\n\n"
                 "⚡ Bot Made by CHOSEN ONE ⚝"
             ),
-            reply_markup=keyboard
+            reply_markup=reply_markup,
+            message_effect_id=5104841245755180586
         )
         return
  
