@@ -101,16 +101,16 @@ async def stats(client, message):
 📑 **Mongo Version**: `{motor.version}`
 """)
 
+# /getusers command — OWNER only, private chat, paginated
 @app.on_message(filters.command("getusers") & filters.user(OWNER_ID) & filters.private)
 async def getusers_paginated(client, message: Message):
     users = await get_users()
     if not users:
         return await message.reply("🚫 No users found in the database.")
-
     await show_users_page(client, message.chat.id, users, page=0)
 
 
-# Handler to paginate using callback buttons
+# Callback handler for pagination
 @app.on_callback_query(filters.regex(r"^users_page_(\d+)$") & filters.user(OWNER_ID))
 async def paginate_users_callback(client, query: CallbackQuery):
     page = int(query.matches[0].group(1))
@@ -118,9 +118,9 @@ async def paginate_users_callback(client, query: CallbackQuery):
     await show_users_page(client, query.message.chat.id, users, page, query)
 
 
-# Helper function to display paginated user list
+# Show users helper
 async def show_users_page(client, chat_id, users, page=0, query=None):
-    users_per_page = 10
+    users_per_page = 20
     start = page * users_per_page
     end = start + users_per_page
     user_chunk = users[start:end]
@@ -129,14 +129,17 @@ async def show_users_page(client, chat_id, users, page=0, query=None):
     for uid in user_chunk:
         try:
             user = await client.get_users(uid)
-            mention = user.mention
+            name = f"{user.first_name or ''} {user.last_name or ''}".strip()
+            if not name:
+                name = str(uid)
+            mention = f"[`{name}`](tg://user?id={uid})"
         except:
-            mention = f"`{uid}`"
+            mention = f"[`{uid}`](tg://user?id={uid})"
         lines.append(f"• {mention} — `{uid}`")
 
     text = f"👥 **Users {start+1} - {min(end, len(users))} of {len(users)}**:\n\n" + "\n".join(lines)
 
-    # Navigation buttons
+    # Pagination buttons
     buttons = []
     if start > 0:
         buttons.append(InlineKeyboardButton("⬅️ Previous", callback_data=f"users_page_{page - 1}"))
