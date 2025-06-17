@@ -23,6 +23,9 @@ from config import OWNER_ID
 from devgagan.core.mongo.users_db import get_users, add_user, get_user
 from devgagan.core.mongo.plans_db import premium_users
 from pyrogram.types import Message
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+from pyrogram.enums import ChatType
+
 
 @app.on_message(filters.command("id"))
 async def id_command(client, message: Message):
@@ -98,15 +101,32 @@ async def stats(client, message):
 📑 **Mongo Version**: `{motor.version}`
 """)
 
-@app.on_message(filters.command("getusers") & filters.user(OWNER_ID))
-async def get_all_users(client, message: Message):
+@app.on_message(filters.command("getusers") & filters.user(OWNER_ID) & filters.private)
+async def getusers_paginated(client, message: Message):
     users = await get_users()
-
     if not users:
         return await message.reply("🚫 No users found in the database.")
 
+    await show_users_page(client, message.chat.id, users, page=0)
+
+
+# Handler to paginate using callback buttons
+@app.on_callback_query(filters.regex(r"^users_page_(\d+)$") & filters.user(OWNER_ID))
+async def paginate_users_callback(client, query: CallbackQuery):
+    page = int(query.matches[0].group(1))
+    users = await get_users()
+    await show_users_page(client, query.message.chat.id, users, page, query)
+
+
+# Helper function to display paginated user list
+async def show_users_page(client, chat_id, users, page=0, query=None):
+    users_per_page = 10
+    start = page * users_per_page
+    end = start + users_per_page
+    user_chunk = users[start:end]
+
     lines = []
-    for uid in users:
+    for uid in user_chunk:
         try:
             user = await client.get_users(uid)
             mention = user.mention
@@ -114,12 +134,19 @@ async def get_all_users(client, message: Message):
             mention = f"`{uid}`"
         lines.append(f"• {mention} — `{uid}`")
 
-    text = "\n".join(lines)
+    text = f"👥 **Users {start+1} - {min(end, len(users))} of {len(users)}**:\n\n" + "\n".join(lines)
 
-    if len(text) < 4096:
-        await message.reply_text(f"👥 **All Users of the Bot**:\n\n{text}")
+    # Navigation buttons
+    buttons = []
+    if start > 0:
+        buttons.append(InlineKeyboardButton("⬅️ Previous", callback_data=f"users_page_{page - 1}"))
+    if end < len(users):
+        buttons.append(InlineKeyboardButton("Next ➡️", callback_data=f"users_page_{page + 1}"))
+
+    markup = InlineKeyboardMarkup([buttons]) if buttons else None
+
+    if query:
+        await query.message.edit_text(text, reply_markup=markup, disable_web_page_preview=True)
+        await query.answer()
     else:
-        with open("users.txt", "w", encoding="utf-8") as f:
-            f.write("All Bot Users:\n\n" + text)
-        await message.reply_document("users.txt", caption="📋 All Users List")
-        os.remove("users.txt")
+        await client.send_message(chat_id, text, reply_markup=markup, disable_web_page_preview=True)
