@@ -101,7 +101,14 @@ async def stats(client, message):
 📑 **Mongo Version**: `{motor.version}`
 """)
 
-# /getusers command — OWNER only, private chat, paginated
+from pyrogram.types import (
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    Message,
+    CallbackQuery
+)
+
+# /getusers command — OWNER only, private chat
 @app.on_message(filters.command("getusers") & filters.user(OWNER_ID) & filters.private)
 async def getusers_paginated(client, message: Message):
     users = await get_users()
@@ -110,7 +117,7 @@ async def getusers_paginated(client, message: Message):
     await show_users_page(client, message.chat.id, users, page=0)
 
 
-# Callback handler for pagination
+# Pagination callback handler
 @app.on_callback_query(filters.regex(r"^users_page_(\d+)$") & filters.user(OWNER_ID))
 async def paginate_users_callback(client, query: CallbackQuery):
     page = int(query.matches[0].group(1))
@@ -118,7 +125,7 @@ async def paginate_users_callback(client, query: CallbackQuery):
     await show_users_page(client, query.message.chat.id, users, page, query)
 
 
-# Show users helper
+# Helper: show paginated user list
 async def show_users_page(client, chat_id, users, page=0, query=None):
     users_per_page = 20
     start = page * users_per_page
@@ -129,9 +136,8 @@ async def show_users_page(client, chat_id, users, page=0, query=None):
     for uid in user_chunk:
         try:
             user = await client.get_users(uid)
-            name = f"{user.first_name or ''} {user.last_name or ''}".strip()
-            if not name:
-                name = str(uid)
+            name = f"{user.first_name or ''} {user.last_name or ''}".strip() or str(uid)
+            name = name.replace('[', '').replace(']', '')  # Avoid markdown conflicts
             mention = f"[`{name}`](tg://user?id={uid})"
         except:
             mention = f"[`{uid}`](tg://user?id={uid})"
@@ -149,7 +155,7 @@ async def show_users_page(client, chat_id, users, page=0, query=None):
     markup = InlineKeyboardMarkup([buttons]) if buttons else None
 
     if query:
-        await query.message.edit_text(text, reply_markup=markup, disable_web_page_preview=True)
+        await query.message.edit_text(text, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
         await query.answer()
     else:
-        await client.send_message(chat_id, text, reply_markup=markup, disable_web_page_preview=True)
+        await client.send_message(chat_id, text, reply_markup=markup, parse_mode=ParseMode.MARKDOWN)
