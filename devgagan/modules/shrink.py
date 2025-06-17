@@ -87,7 +87,7 @@ async def token_handler(client, message):
 
         await message.reply_photo(
             image_url,
-            message_effect_id=5104841245755180586,
+            message_effect_id=5104841245755180584,
             caption=(
                 f"👋 **Hello, {user_mention}! Welcome to Save Restricted Bot!**\n\n"
                 "🔒 I help you **unlock and save content** from channels or groups that don't allow forwarding.\n\n"
