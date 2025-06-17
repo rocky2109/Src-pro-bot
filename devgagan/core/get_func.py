@@ -510,7 +510,7 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
 
         # If no caption, but file name exists, use it
         if not caption and file_name:
-            caption = f"📁 **{file_name}**"
+            caption = f"> 🗃️ **{file_name}**"
         elif caption and file_name:
             # Add blockquote formatting
             caption = re.sub(
@@ -519,7 +519,7 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
                 caption
             )
             caption = "\n".join([f"> {line}" for line in caption.strip().splitlines()])
-            caption = f"📁 **{file_name}**\n\n{caption}"
+            caption = f">🗃️ **{file_name}**\n\n{caption}"
         elif caption:
             caption = "\n".join([f"> {line}" for line in caption.strip().splitlines()])
         else:
