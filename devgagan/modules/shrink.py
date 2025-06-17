@@ -86,8 +86,7 @@ async def token_handler(client, message):
         user_mention = message.from_user.mention if message.from_user else "User"
 
         await message.reply_photo(
-            image_url,
-            message_effect_id=5104841245755180584,
+            image_url,            
             caption=(
                 f"👋 **Hello, {user_mention}! Welcome to Save Restricted Bot!**\n\n"
                 "🔒 I help you **unlock and save content** from channels or groups that don't allow forwarding.\n\n"
@@ -100,7 +99,7 @@ async def token_handler(client, message):
                 "⚡ Bot Made by CHOSEN ONE ⚝"
             ),
             reply_markup=keyboard,  # ✅ fixed here
-            
+            message_effect_id=5104841245755180586
         )
         return
  
