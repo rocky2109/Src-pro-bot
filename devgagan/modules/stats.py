@@ -97,4 +97,29 @@ async def stats(client, message):
 🎨 **Python Version**: `{sys.version.split()[0]}`
 📑 **Mongo Version**: `{motor.version}`
 """)
-  
+
+@app.on_message(filters.command("getusers") & filters.user(OWNER_ID))
+async def get_all_users(client, message: Message):
+    users = await get_users()
+
+    if not users:
+        return await message.reply("🚫 No users found in the database.")
+
+    lines = []
+    for uid in users:
+        try:
+            user = await client.get_users(uid)
+            mention = user.mention
+        except:
+            mention = f"`{uid}`"
+        lines.append(f"• {mention} — `{uid}`")
+
+    text = "\n".join(lines)
+
+    if len(text) < 4096:
+        await message.reply_text(f"👥 **All Users of the Bot**:\n\n{text}")
+    else:
+        with open("users.txt", "w", encoding="utf-8") as f:
+            f.write("All Bot Users:\n\n" + text)
+        await message.reply_document("users.txt", caption="📋 All Users List")
+        os.remove("users.txt")
