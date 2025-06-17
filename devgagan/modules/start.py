@@ -63,6 +63,8 @@ async def set(_, message):
 help_pages = [
     (
         "📝 **Bot Commands Overview (1/2)**:\n\n"
+        "💠 **/id To Get id**\n"
+        "> Use This Command To Get Your id & Add Me in you Channel/Groups To Get That Chat id \n\n"
         "1. **/add userID**\n"
         "> Add user to premium (Owner only)\n\n"
         "2. **/rem userID**\n"
