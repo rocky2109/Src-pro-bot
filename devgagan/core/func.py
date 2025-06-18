@@ -42,7 +42,7 @@ async def subscribe(app, message):
             await message.reply_text("You are Banned. Contact -- @CHOSEN_ONEx_bot")
             return 1
       except UserNotParticipant:
-        caption = f"Join our channel to use the bot 😉"
+        caption = f"<b>Join our channel to use the bot 😉\nAfter Joining/start Again</b>"
         await message.reply_photo(photo="https://postimg.cc/K133r7Vf",caption=caption, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Join Now...", url=f"{url}")]]))
         return 1
       except Exception:
