@@ -1059,35 +1059,63 @@ async def handle_large_file(file, sender, edit, caption):
         gc.collect()
         return
 
+def strip_unicode_junk(text: str) -> str:
+    clean = []
+    for char in text:
+        name = unicodedata.name(char, "")
+        codepoint = ord(char)
+
+        if (
+            any(sub in name for sub in [
+                "MATHEMATICAL", "CIRCLED", "SQUARED", "FULLWIDTH", "DOUBLE-STRUCK", "BOLD",
+                "ITALIC", "SCRIPT", "BLACK", "FRAKTUR", "MONOSPACE", "TAG", "ENCLOSED",
+                "HEART", "SYMBOL", "ORNAMENT", "MODIFIER", "DINGBAT", "BRAILLE", "EMOJI", "INDICATOR"
+            ])
+            or 0x13000 <= codepoint <= 0x1342F   # Egyptian Hieroglyphs
+            or 0x1F000 <= codepoint <= 0x1FAFF   # Extended emoji/symbols
+        ):
+            continue  # skip fancy/unwanted characters
+
+        clean.append(char)
+    return ''.join(clean)
+
+
+
 async def rename_file(file, sender):
     delete_words = load_delete_words(sender)
     replacements = load_replacement_words(sender)
     custom_rename_tag = get_user_rename_preference(sender)
 
-    # Extract base name and extension
+    # Split filename and extension
     base_name, ext = os.path.splitext(file)
     ext = ext if ext and len(ext) <= 6 else ".mp4"
+    base_name = os.path.basename(base_name)
 
-    base_name = os.path.basename(base_name)  # Only filename without path
-
-    # ✅ Replace @mention with @Real_Pirates
+    # Replace @mention with bot tag
     base_name = re.sub(r'@\w+', '@Src_pro_bot', base_name)
 
-    # 🔁 Apply custom word deletion
+    # Apply delete words
     for word in delete_words:
         base_name = base_name.replace(word, "")
 
-    # 🔁 Apply replacement words
+    # Apply replacement rules
     for word, replace_word in replacements.items():
         base_name = base_name.replace(word, replace_word)
 
-    # ✅ Final new filename with tag and extension
-    new_file_name = f"{base_name} {custom_rename_tag}{ext}"
+    # 🔥 Clean junk characters and emojis
+    base_name = strip_unicode_junk(base_name)
 
-    # Rename the actual file
+# 🧹 Remove trailing junk and single underscore
+    base_name = re.sub(r'[\W_]*_$', '', base_name)
+
+# 📁 Final file name
+    new_file_name = f"{base_name} {custom_rename_tag}{ext}".strip()
+
+
+    # Rename the file
     await asyncio.to_thread(os.rename, file, new_file_name)
-
     return new_file_name
+
 
 
 async def sanitize(file_name: str) -> str:
