@@ -89,7 +89,7 @@ async def token_handler(client, message):
             image_url,            
             caption=(
                 f"👋 **Hello, {user_mention}! Welcome to Save Restricted Bot!**\n\n"
-                ">🔒 I Can Help You To **Save And Forward Content** from channels or groups that don't allow forwarding.🤫\n\n"
+                "🔒 I Can Help You To **Save And Forward Content** from channels or groups that don't allow forwarding.🤫\n\n"
                 "📌 **How to use me:**\n"
                 "➤ Just **send me the post link** if it's Public\n"
                 "🔓 I'll fetch the media or message for you.\n\n"
