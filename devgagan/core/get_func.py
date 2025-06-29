@@ -118,6 +118,27 @@ async def log_upload(user_id, file_type, file_msg, upload_method, duration=None,
         await app.send_message(LOG_GROUP, f"❌ Log Error: `{e}`")
 
 # Upload handler
+import os
+import re
+import gc
+import time
+import asyncio
+import unicodedata
+from datetime import datetime
+from pyrogram.enums import ParseMode
+from telethon.tl.types import DocumentAttributeVideo
+
+# Clean filename helper
+def clean_filename(text):
+    if not text:
+        return "file"
+    # Normalize unicode and strip non-ASCII
+    text = unicodedata.normalize("NFKD", text)
+    text = re.sub(r'[^\w\s.-]', '', text)  # Remove special chars/emojis
+    text = re.sub(r'[_\s\-]+', ' ', text)  # Normalize spacing
+    return text.strip()
+
+# Upload handler
 async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
     try:
         upload_method = await fetch_upload_method(sender)
@@ -126,7 +147,9 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
         thumb_path = await screenshot(file, duration, sender)
 
         ext = file.split('.')[-1].lower()
-        file_name = os.path.basename(file)
+        raw_name = os.path.basename(file)
+        clean_name = clean_filename(os.path.splitext(raw_name)[0])
+        file_name = f"{clean_name}.{ext}"
 
         video_formats = {'mp4', 'mkv', 'avi', 'mov'}
         image_formats = {'jpg', 'png', 'jpeg'}
@@ -187,7 +210,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
             uploaded = await fast_upload(
                 gf, file,
                 reply=progress_message,
-                name=huu,
+                name=file_name,
                 progress_bar_function=lambda done, total: progress_callback(done, total, sender)
             )
             await progress_message.delete()
@@ -196,6 +219,21 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 DocumentAttributeVideo(duration=duration, w=width, h=height, supports_streaming=True)
             ] if ext in video_formats else []
 
+            bot = await app.get_me()
+            bot_name = f"{bot.first_name} (@{bot.username})" if bot else "Bot"
+
+            log_caption = (
+                f"📁 **File Name:** {file_name}\n\n"
+                f"📤 **Upload Info**\n"
+                f"👤 **User:** [{sender}](tg://user?id={sender})\n"
+                f"🆔 **User ID:** `{sender}`\n"
+                f"🗂️ **Type:** `{ext.upper()}`\n"
+                f"⚙️ **Method:** `Telethon`\n"
+                f"⏱️ **Duration:** `{duration} sec`\n"
+                f"🕒 **Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                f"🤖 **Saved by:** {bot_name}"
+            )
+
             await gf.send_file(
                 target_chat_id,
                 uploaded,
@@ -203,21 +241,6 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 attributes=attributes,
                 reply_to=topic_id,
                 thumb=thumb_path
-            )
-
-            bot = await app.get_me()
-            bot_name = f"{bot.first_name} (@{bot.username})" if bot else "Bot"
-
-            log_caption = (
-                f"📁 **File Name:** `{file_name}`\n\n"
-                f"📤 **Upload Info**\n"
-                f"👤 **User:** [{sender}](tg://user?id={sender})\n"
-                f"🆔 **User ID:** `{sender}`\n"
-                f"🗂️ **Type:** `{ext.upper()}`\n"
-                f"⚙️ **Method:** `Telethon`\n"
-                f"⏱️ **Duration:** `{duration} sec`\n"
-                f"🕒 **Time:** `{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}`\n\n"
-                f"🤖 **Saved by:** `{bot_name}`"
             )
 
             await gf.send_file(
@@ -236,6 +259,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
         if thumb_path and os.path.exists(thumb_path):
             os.remove(thumb_path)
         gc.collect()
+
 
 
 
