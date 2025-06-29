@@ -187,7 +187,7 @@ async def batch_link(_, message):
 
     # Start link input
     for attempt in range(3):
-        start = await app.ask(message.chat.id, "Please send the start link.\n\n> Maximum tries 3")
+        start = await app.ask(message.chat.id, "🎯 Send the The First Post link.\n\n> You Have Only 3 Tries")
         start_id = start.text.strip()
         s = start_id.split("/")[-1]
         if s.isdigit():
@@ -200,7 +200,7 @@ async def batch_link(_, message):
 
     # Number of messages input
     for attempt in range(3):
-        num_messages = await app.ask(message.chat.id, f"How many messages do you want to process?\n> Max limit {max_batch_size}")
+        num_messages = await app.ask(message.chat.id, f"How many messages do you want to process? 🌝\n> Max limit {max_batch_size}")
         try:
             cl = int(num_messages.text.strip())
             if 1 <= cl <= max_batch_size:
@@ -254,7 +254,7 @@ async def batch_link(_, message):
                 f"Batch completed successfully for {cl} messages 🎉\n\n**__Powered by CHOSEN ONE ⚝__**",
                 reply_markup=keyboard
             )
-            await app.send_message(message.chat.id, "Batch completed successfully! 🎉")
+            await app.send_message(message.chat.id, "😘 𝗖ꪮ𝗺𝗽𝗹𝗲𝘁𝗲 𝗛ꪮ 𝗚𝗮𝘆𝗮 𝗕ꪮ$$ 😎)
             return
             
         # Handle special links with userbot
