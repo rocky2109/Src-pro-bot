@@ -74,7 +74,7 @@ async def token_handler(client, message):
     user_id = message.chat.id
 
     if len(message.command) <= 1:
-        image_url = "https://freeimage.host/i/F35exwP"  # must end with .jpg/.png etc.
+        image_url = "https://freeimage.host/i/F5dGOsj"  # must end with .jpg/.png etc.
         join_button = InlineKeyboardButton("Main Channel", url="https://t.me/II_LevelUP_II")
         premium = InlineKeyboardButton("💎 Premium Courses", url="https://t.me/+eJQiBsIpvrwxMTZl")
         keyboard = InlineKeyboardMarkup([
@@ -89,17 +89,17 @@ async def token_handler(client, message):
             image_url,            
             caption=(
                 f"👋 **Hello, {user_mention}! Welcome to Save Restricted Bot!**\n\n"
-                "🔒 I help you **unlock and save content** from channels or groups that don't allow forwarding.\n\n"
+                ">🔒 I Can Help You To **Save And Forward Content** from channels or groups that don't allow forwarding.🤫\n\n"
                 "📌 **How to use me:**\n"
                 "➤ Just **send me the post link** if it's Public\n"
                 "🔓 I'll fetch the media or message for you.\n\n"
                 "🔐 **Private channel post?**\n"
                 "➤ First do /login to save posts from Private Channel\n\n"
-                "💡 Need help? Send /guide for more details also use /help\n\n"
+                "💡 Need help? Send /guide for more Features Use /settings 😉 \n\n"
                 "⚡ Bot Made by CHOSEN ONE ⚝"
             ),
             reply_markup=keyboard,  # ✅ fixed here
-            message_effect_id=5104841245755180586
+            message_effect_id=5046509860389126448
         )
         return
  
