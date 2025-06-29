@@ -99,7 +99,7 @@ async def token_handler(client, message):
                 "⚡ Bot Made by CHOSEN ONE ⚝"
             ),
             reply_markup=keyboard,  # ✅ fixed here
-            message_effect_id=5046509860389126448
+            message_effect_id=5104841245755180586
         )
         return
  
