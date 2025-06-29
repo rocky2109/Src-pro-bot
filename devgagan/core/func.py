@@ -42,7 +42,7 @@ async def subscribe(app, message):
             await message.reply_text("You are Banned. Contact -- @CHOSEN_ONEx_bot")
             return 1
       except UserNotParticipant:
-        caption = f"<b>Join our channel to use the bot 😉\nAfter Joining/start Again</b>"
+        caption = f"**Join our channel to use the bot 😉\nAfter Join... /start Again**"
         await message.reply_photo(photo="https://postimg.cc/K133r7Vf",caption=caption, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Join Now...", url=f"{url}")]]))
         return 1
       except Exception:
@@ -83,12 +83,11 @@ async def get_seconds(time_string):
         return 0
 PROGRESS_BAR = """
    ┉━┉━┉━┉┉━┉━┉━┉┉━┉━
-*┋ **__Total Size:__** {2}
-*┋ **__Completed:__** {1}
-*┋ **__Progress:__** {0}%
-*┋ **__Speed:__** {3}/s
-*┋ **__EST:__** {4}\n
- ╚═══━━━──⚝──━━━═══╝
+>*┋ **__Total Size:__** {2}
+>*┋ **__Completed:__** {1}
+>*┋ **__Progress:__** {0}%
+>*┋ **__Speed:__** {3}/s
+>*┋ **__EST:__** {4}\n╚═══━━━──⚝──━━━═══╝
 """
 async def progress_bar(current, total, ud_type, message, start):
 
