@@ -190,7 +190,7 @@ async def batch_link(_, message):
     # Send image with caption
         await app.send_photo(
             message.chat.id,
-            photo="https://example.com/sample.jpg",  # Replace with your image URL
+            photo="https://i.postimg.cc/BXkchVpY/image.jpg",  # Replace with your image URL
             caption="Just Copy Post Link And Send it To Me.\n\nMake sure the link is correct!"
         )
         start = await app.ask(message.chat.id, "🎯 Send the The First Post link.\n\n> You Have Only 3 Tries")
