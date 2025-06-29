@@ -81,14 +81,15 @@ async def get_seconds(time_string):
         return value * 86400 * 365
     else:
         return 0
-PROGRESS_BAR = """
-   ┉━┉━┉━┉┉━┉━┉━┉┉━┉━
->*┋ **__Total Size:__** {2}\n
->*┋ **__Completed:__** {1}\n
->*┋ **__Progress:__** {0}%\n
->*┋ **__Speed:__** {3}/s\n
->*┋ **__EST:__** {4}\n╚═══━━━──⚝──━━━═══╝
-"""
+PROGRESS_BAR =
+   f"┉━┉━┉━┉┉━┉━┉━┉┉━┉━"
+f">*┋ **__Total Size:__** {2}"
+f">*┋ **__Completed:__** {1}"
+f">*┋ **__Progress:__** {0}%"
+f">*┋ **__Speed:__** {3}/s"
+f">*┋ **__EST:__** {4}\n"
+f"╚═══━━━──⚝──━━━═══╝"
+
 async def progress_bar(current, total, ud_type, message, start):
 
     now = time.time()
