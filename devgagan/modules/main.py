@@ -187,6 +187,12 @@ async def batch_link(_, message):
 
     # Start link input
     for attempt in range(3):
+    # Send image with caption
+        await app.send_photo(
+            message.chat.id,
+            photo="https://example.com/sample.jpg",  # Replace with your image URL
+            caption="Just Copy Post Link And Send it To Me.\n\nMake sure the link is correct!"
+        )
         start = await app.ask(message.chat.id, "🎯 Send the The First Post link.\n\n> You Have Only 3 Tries")
         start_id = start.text.strip()
         s = start_id.split("/")[-1]
