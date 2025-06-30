@@ -93,7 +93,7 @@ async def token_handler(client, message):
                 "📌 **How to use me:**\n"
                 "➤ Just **send me the post link** if it's Public\n"
                 "🔓 I'll fetch the media or message for you.\n\n"
-                "> 💠 Use /batch For Bulk Forwarding...💀"
+                "> 💠 Use /batch For Bulk Forwarding...💀\n"
                 "🔐 **Private channel post?**\n"
                 "➤ First do /login to save posts from Private Channel\n\n"
                 "💡 Need help? Send /guide\n For More Features Use /settings 😉 \n\n"
