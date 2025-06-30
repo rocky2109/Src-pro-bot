@@ -1067,28 +1067,37 @@ import asyncio
 import unicodedata
 
 def strip_unicode_junk(text: str) -> str:
+    """Completely remove all styled/fancy characters (does NOT convert to normal letters)"""
     clean = []
     for char in text:
+        # Skip if it's a control character or whitespace
+        if unicodedata.category(char)[0] in ('C', 'Z'):
+            continue
+            
+        # Get Unicode name and codepoint
         name = unicodedata.name(char, "")
         codepoint = ord(char)
 
-        if (
-            any(sub in name for sub in [
-                "MATHEMATICAL", "CIRCLED", "SQUARED", "FULLWIDTH", "DOUBLE-STRUCK", "BOLD",
-                "ITALIC", "SCRIPT", "BLACK", "FRAKTUR", "MONOSPACE", "TAG", "ENCLOSED",
-                "HEART", "SYMBOL", "ORNAMENT", "MODIFIER", "DINGBAT", "BRAILLE", "EMOJI", "INDICATOR"
-            ])
-            or 0x13000 <= codepoint <= 0x1342F   # Egyptian Hieroglyphs
-            or 0x1F000 <= codepoint <= 0x1FAFF   # Extended emoji block
-            or char in ['𓆩', '𓆪']              # Manually remove weird symbols
+        # Check if character is in basic Latin ranges (normal letters/numbers)
+        is_basic_latin = (
+            0x0020 <= codepoint <= 0x007E or  # Basic Latin
+            0x00A0 <= codepoint <= 0x00FF or  # Latin-1 Supplement
+            0x0100 <= codepoint <= 0x017F     # Latin Extended-A
+        )
+        
+        # Only keep if it's basic Latin and NOT any fancy/styled variant
+        if is_basic_latin and not any(
+            style in name for style in [
+                "MATHEMATICAL", "DOUBLE-STRUCK", "BOLD",
+                "ITALIC", "SCRIPT", "FRAKTUR"
+            ]
         ):
-            continue  # skip fancy/unwanted characters
-
-        clean.append(char)
-
-    # Join cleaned characters and remove unwanted trailing underscore/symbols
+            clean.append(char)
+            
+    # Join cleaned characters and normalize
     result = ''.join(clean)
-    result = re.sub(r'[\W_]*_$', '', result)  # clean trailing junk
+    result = re.sub(r'[^\w\s-]', '', result)  # Remove remaining special chars
+    result = re.sub(r'\s+', ' ', result)      # Collapse multiple spaces
     return result.strip()
 
 # ✅ Clean rename function with junk filter
