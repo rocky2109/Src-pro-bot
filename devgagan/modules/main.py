@@ -193,7 +193,7 @@ async def batch_link(_, message):
             photo="https://i.postimg.cc/BXkchVpY/image.jpg",  # Replace with your image URL
             caption="Just Copy Post Link And Send it To Me.\n\nMake sure the link is correct!"
         )
-        start = await app.ask(message.chat.id, "🎯 Send the The First Post link.\n\n> You Have Only 3 Tries")
+        start = await app.ask(message.chat.id, "🎯 Send The Link For Where I Need To Start Process From \nजहाँ से प्रोसेस शुरू करना है उसका लिंक भेजो\n> You Have Only 3 Tries")
         start_id = start.text.strip()
         s = start_id.split("/")[-1]
         if s.isdigit():
