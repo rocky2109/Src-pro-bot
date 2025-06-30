@@ -96,9 +96,11 @@ async def log_upload(user_id, file_type, file_msg, upload_method, duration=None,
 
         user_mention = f"[{user.first_name}](tg://user?id={user.id})" if user else f"`{user_id}`"
         bot_name = f"{bot.first_name} (@{bot.username})" if bot else "Unknown Bot"
-
+        display_text = file_msg.caption if file_msg.caption else (file_name or "No caption/filename")
+        # Clean and truncate the text
+        clean_text = (display_text[:100] + '...') if len(display_text) > 100 else display_text
         text = (
-            f"📁 **File Name:** `{file_name or 'Unknown'}`\n\n"
+            f"💠 **Content:** {clean_text}\n\n"
             f"📤 **Upload Info**\n"
             f"👤 **User:** {user_mention}\n"
             f"🆔 **User ID:** `{user_id}`\n"
