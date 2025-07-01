@@ -135,7 +135,7 @@ def clean_filename(text):
         name = unicodedata.name(char, "")
         codepoint = ord(char)
 
-        # Remove if character is a fancy style or symbol
+        # Skip if character is stylized/junk
         if (
             any(sub in name for sub in [
                 "MATHEMATICAL", "DOUBLE-STRUCK", "CIRCLED", "SQUARED", "FULLWIDTH", "BOLD",
@@ -143,16 +143,21 @@ def clean_filename(text):
                 "HEART", "ORNAMENT", "DINGBAT", "MODIFIER", "BRAILLE", "SYMBOL", "EMOJI"
             ])
             or 0x13000 <= codepoint <= 0x1342F  # Egyptian Hieroglyphs
-            or 0x1F000 <= codepoint <= 0x1FAFF  # Emoji/Symbols
+            or 0x1F000 <= codepoint <= 0x1FAFF  # Emojis & symbols
         ):
-            continue
+            continue  # Remove stylized or emoji-like characters
 
+        # ✅ Keep normal text and Indian scripts like Gujarati, Devanagari, etc.
         clean.append(char)
 
+    # Join cleaned chars
     text = ''.join(clean)
-    text = re.sub(r'[^\w\s.-]', '', text)       # Remove other non-ASCII/special chars
-    text = re.sub(r'[_\s\-]+', ' ', text)       # Normalize underscores/spaces/dashes
+
+    # Final sanitization
+    text = re.sub(r'[^\w\s.\-()\[\]–—]', '', text)  # Remove special symbols except useful ones
+    text = re.sub(r'[_\s\-]+', ' ', text)           # Normalize multiple spaces/dashes/underscores
     return text.strip()
+
 
 
 # Upload handler
@@ -791,46 +796,52 @@ pending_photos = {}
 @gf.on(events.CallbackQuery)
 async def callback_query_handler(event):
     user_id = event.sender_id
-    
-    if event.data == b'setchat':
-        await event.respond("Send me the ID of that chat")
-        sessions[user_id] = 'setchat'
+    data = event.data
 
-    elif event.data == b'setrename':
-        await event.respond(">Send me the rename tag:")
-        sessions[user_id] = 'setrename'
+    if data == b'setchat':
+        await event.respond(
+            "🎯 **Setting Target Chat**\n\n"
+            "🆔 **Send the Chat ID** where you want to forward all posts automatically. 🌝\n\n"
+            "💡 *Tip:* Just **add me to that chat**, then send `/id` in the Channel/Group."
+            "**I'll automatically detect the Chat ID.**"
+        )
+    sessions[user_id] = 'setchat'
     
-    elif event.data == b'setcaption':
-        await event.respond(">Send me the caption:")
+   elif data == b'setrename':
+        await event.respond("✏️ Send the **rename tag** you want to use:")
+        sessions[user_id] = 'setrename'
+
+    elif data == b'setcaption':
+        await event.respond("📝 Send the **caption format** (you can include variables like {filename}, {size}):")
         sessions[user_id] = 'setcaption'
 
-    elif event.data == b'setreplacement':
-        await event.respond(">Send me the replacement words in the format: 'WORD(s)' 'REPLACEWORD'")
+    elif data == b'setreplacement':
+        await event.respond("🔄 Send replacement in this format:\n\n`oldword newword`\n\n*Example:* `1080p HD`")
         sessions[user_id] = 'setreplacement'
 
-    elif event.data == b'addsession':
-        await event.respond("Send Pyrogram V2 session")
-        sessions[user_id] = 'addsession' # (If you want to enable session based login just uncomment this and modify response message accordingly)
+    elif data == b'addsession':
+        await event.respond("🔐 Send your **Pyrogram V2 session string**:\n\n*(We recommend not sharing this publicly)*")
+        sessions[user_id] = 'addsession'
 
-    elif event.data == b'delete':
-        await event.respond(">Send words seperated by space to delete them from caption/filename ...")
+    elif data == b'delete':
+        await event.respond("❌ Send **words to delete** (separated by space) from the filename/caption:")
         sessions[user_id] = 'deleteword'
-        
-    elif event.data == b'logout':
+
+    elif data == b'logout':
         await odb.remove_session(user_id)
         user_data = await odb.get_data(user_id)
         if user_data and user_data.get("session") is None:
-            await event.respond("Logged out and deleted session successfully.")
+            await event.respond("✅ You have been **logged out** and your session was removed successfully.")
         else:
-            await event.respond("You are not logged in.")
-        
-    elif event.data == b'setthumb':
+            await event.respond("⚠️ You are not logged in.")
+
+    elif data == b'setthumb':
         pending_photos[user_id] = True
-        await event.respond('Please send the photo you want to set as the thumbnail.')
-    
-    elif event.data == b'pdfwt':
-        await event.respond("Watermark is Pro+ Plan.. contact @GeniusJunctionX")
-        return
+        await event.respond("📸 Send the **photo** you want to use as your custom thumbnail.")
+
+    elif data == b'pdfwt':
+        await event.respond("🔒 PDF watermarking is available for **Pro+ Plan** users.\n\n👉 Contact [@GeniusJunctionX](https://t.me/GeniusJunctionX) to upgrade.")
+
 
     elif event.data == b'uploadmethod':
         # Retrieve the user's current upload method (default to Pyrogram)
