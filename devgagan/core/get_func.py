@@ -282,13 +282,6 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
         gc.collect()
 
 
-    finally:
-        if thumb_path and os.path.exists(thumb_path):
-            os.remove(thumb_path)
-        gc.collect()
-
-
-
 
 async def get_msg(userbot, sender, edit_id, msg_link, i, message):
     try:
