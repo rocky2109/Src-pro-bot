@@ -790,45 +790,46 @@ pending_photos = {}
 @gf.on(events.CallbackQuery)
 async def callback_query_handler(event):
     user_id = event.sender_id
-    data = event.data
+    data = event.data.decode()  # Decode bytes to string
 
-    if data == b'setchat':
+    if data == 'setchat':
         await event.respond(
             "🎯 **Setting Target Chat**\n\n"
             "🆔 **Send the Chat ID** where you want to forward all posts automatically. 🌝\n\n"
-            "💡 *Tip:* Just **add me to that chat**, then send `/id` in the Channel/Group."
+            "💡 *Tip:* Just **add me to that chat**, then send `/id` in the Channel/Group.\n"
             "**I'll automatically detect the Chat ID.**"
         )
-    sessions[user_id] = 'setchat'
+        sessions[user_id] = 'setchat'
     
-   elif data == b'setrename':
+    elif data == 'setrename':
         await event.respond("✏️ Send the **rename tag** you want to use:")
         sessions[user_id] = 'setrename'
 
-    elif data == b'setcaption':
+    elif data == 'setcaption':
         await event.respond("📝 Send the **caption format** (you can include variables like {filename}, {size}):")
         sessions[user_id] = 'setcaption'
 
-    elif data == b'setreplacement':
+    elif data == 'setreplacement':
         await event.respond("🔄 Send replacement in this format:\n\n`oldword newword`\n\n*Example:* `1080p HD`")
         sessions[user_id] = 'setreplacement'
 
-    elif data == b'addsession':
+    elif data == 'addsession':
         await event.respond("🔐 Send your **Pyrogram V2 session string**:\n\n*(We recommend not sharing this publicly)*")
         sessions[user_id] = 'addsession'
 
-    elif data == b'delete':
+    elif data == 'delete':
         await event.respond("❌ Send **words to delete** (separated by space) from the filename/caption:")
         sessions[user_id] = 'deleteword'
 
-    elif data == b'logout':
+    elif data == 'logout':
         await odb.remove_session(user_id)
         user_data = await odb.get_data(user_id)
         if user_data and user_data.get("session") is None:
             await event.respond("✅ You have been **logged out** and your session was removed successfully.")
         else:
             await event.respond("⚠️ You are not logged in.")
-
+    
+    
     elif data == b'setthumb':
         pending_photos[user_id] = True
         await event.respond("📸 Send the **photo** you want to use as your custom thumbnail.")
