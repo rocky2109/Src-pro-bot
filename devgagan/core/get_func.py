@@ -105,6 +105,7 @@ async def log_upload(user_id, file_type, file_msg, upload_method, duration=None,
             f"📤 **Upload Info**\n"
             f"👤 **User:** {user_mention}\n"
             f"🆔 **User ID:** `{user_id}`\n"
+        )
 
         text += f"\n🤖 **Saved by:** {bot_name}"
 
