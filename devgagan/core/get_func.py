@@ -41,6 +41,11 @@ def thumbnail(sender):
     path = os.path.join(THUMBNAIL_DIR, f"{sender}.jpg")
     return path if os.path.exists(path) else None
 
+
+
+THUMBNAIL_DIR = "./thumbnails"
+os.makedirs(THUMBNAIL_DIR, exist_ok=True)
+
 # MongoDB database name and collection name
 DB_NAME = "smart_users"
 COLLECTION_NAME = "super_user"
