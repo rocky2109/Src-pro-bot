@@ -220,7 +220,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                     chat_id=target_chat_id,
                     document=file,
                     caption=caption,
-                    thumb_path = thumbnail(sender) or await screenshot(file, duration, sender),
+                    thumb=thumb_path,
                     reply_to_message_id=topic_id,
                     parse_mode=ParseMode.MARKDOWN,
                     progress=progress_bar,
