@@ -132,38 +132,15 @@ from telethon.tl.types import DocumentAttributeVideo
 
 # Clean filename helper
 
+# Clean filename helper
 def clean_filename(text):
     if not text:
         return "file"
-
-    clean = []
-    for char in text:
-        name = unicodedata.name(char, "")
-        codepoint = ord(char)
-
-        # Skip if character is stylized/junk
-        if (
-            any(sub in name for sub in [
-                "MATHEMATICAL", "DOUBLE-STRUCK", "CIRCLED", "SQUARED", "FULLWIDTH", "BOLD",
-                "ITALIC", "SCRIPT", "BLACK", "FRAKTUR", "MONOSPACE", "TAG", "ENCLOSED",
-                "HEART", "ORNAMENT", "DINGBAT", "MODIFIER", "BRAILLE", "SYMBOL", "EMOJI"
-            ])
-            or 0x13000 <= codepoint <= 0x1342F  # Egyptian Hieroglyphs
-            or 0x1F000 <= codepoint <= 0x1FAFF  # Emojis & symbols
-        ):
-            continue  # Remove stylized or emoji-like characters
-
-        # ✅ Keep normal text and Indian scripts like Gujarati, Devanagari, etc.
-        clean.append(char)
-
-    # Join cleaned chars
-    text = ''.join(clean)
-
-    # Final sanitization
-    text = re.sub(r'[^\w\s.\-()\[\]–—]', '', text)  # Remove special symbols except useful ones
-    text = re.sub(r'[_\s\-]+', ' ', text)           # Normalize multiple spaces/dashes/underscores
+    # Normalize unicode and strip non-ASCII
+    text = unicodedata.normalize("NFKD", text)
+    text = re.sub(r'[^\w\s.-]', '', text)  # Remove special chars/emojis
+    text = re.sub(r'[_\s\-]+', ' ', text)  # Normalize spacing
     return text.strip()
-
 
 
 # Upload handler
