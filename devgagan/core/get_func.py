@@ -106,8 +106,7 @@ async def log_upload(user_id, file_type, file_msg, upload_method, duration=None,
         # Clean and truncate the text
         clean_text = (display_text[:1000] + '...') if len(display_text) > 1000 else display_text
         text = (
-            f">{clean_text}\n\n"
-            f"📤 **Upload Info**\n"
+            f">{clean_text}\n\n"            
             f"👤 **User:** {user_mention}\n"
             f"🆔 **User ID:** `{user_id}`\n"
         )
@@ -151,24 +150,21 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
         width, height, duration = metadata['width'], metadata['height'], metadata['duration']
         thumb_path = await screenshot(file, duration, sender)
 
-        # Replace these lines:
-        # ext = file.split('.')[-1].lower()
-        # raw_name = os.path.basename(file)
-        # clean_name = clean_filename(os.path.splitext(raw_name)[0])
-        # file_name = f"{clean_name}.{ext}"
-        
-        # With this rename_file call (added right after screenshot generation):
-        renamed_file = await rename_file(file, sender, caption=caption)
-        file_name = os.path.basename(renamed_file)
-        ext = renamed_file.split('.')[-1].lower()
+        ext = file.split('.')[-1].lower()
+        raw_name = os.path.basename(file)
+        clean_name = clean_filename(os.path.splitext(raw_name)[0])
+        file_name = f"{clean_name}.{ext}"
+
+        video_formats = {'mp4', 'mkv', 'avi', 'mov'}
+        image_formats = {'jpg', 'png', 'jpeg'}
 
         # ────── Pyrogram Upload ──────
         if upload_method == "Pyrogram":
-            if ext in {'mp4', 'mkv', 'avi', 'mov'}:
+            if ext in video_formats:
                 file_type = "Video"
                 dm = await app.send_video(
                     chat_id=target_chat_id,
-                    video=renamed_file,  # Use the renamed file
+                    video=file,
                     caption=caption,
                     height=height,
                     width=width,
@@ -181,11 +177,11 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 )
                 await log_upload(sender, file_type, dm, "Pyrogram", duration, file_name)
 
-            elif ext in {'jpg', 'png', 'jpeg'}:
+            elif ext in image_formats:
                 file_type = "Photo"
                 dm = await app.send_photo(
                     chat_id=target_chat_id,
-                    photo=renamed_file,  # Use the renamed file
+                    photo=file,
                     caption=caption,
                     parse_mode=ParseMode.MARKDOWN,
                     progress=progress_bar,
@@ -198,7 +194,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 file_type = f"Document ({ext})"
                 dm = await app.send_document(
                     chat_id=target_chat_id,
-                    document=renamed_file,  # Use the renamed file
+                    document=file,
                     caption=caption,
                     thumb=thumb_path,
                     reply_to_message_id=topic_id,
@@ -208,7 +204,6 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 )
                 await asyncio.sleep(2)
                 await log_upload(sender, file_type, dm, "Pyrogram", file_name=file_name)
-
         # ... rest of your Telethon upload code ...
 
         # ────── Telethon Upload ──────
