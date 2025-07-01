@@ -38,7 +38,8 @@ from devgagantools import fast_upload
 from datetime import datetime
 
 def thumbnail(sender):
-    return f'{sender}.jpg' if os.path.exists(f'{sender}.jpg') else None
+    path = os.path.join(THUMBNAIL_DIR, f"{sender}.jpg")
+    return path if os.path.exists(path) else None
 
 # MongoDB database name and collection name
 DB_NAME = "smart_users"
@@ -104,15 +105,8 @@ async def log_upload(user_id, file_type, file_msg, upload_method, duration=None,
             f"📤 **Upload Info**\n"
             f"👤 **User:** {user_mention}\n"
             f"🆔 **User ID:** `{user_id}`\n"
-            f"🗂️ **Type:** `{file_type}`\n"
-            f"⚙️ **Method:** `{upload_method}`\n"
-            f"🕒 **Time:** `{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}`\n"
-        )
 
-        if duration:
-            text += f"⏱️ **Duration:** `{duration} sec`\n"
-
-        text += f"\n🤖 **Saved by:** `{bot_name}`"
+        text += f"\n🤖 **Saved by:** {bot_name}"
 
         await file_msg.copy(LOG_GROUP, caption=text)
 
@@ -131,14 +125,35 @@ from pyrogram.enums import ParseMode
 from telethon.tl.types import DocumentAttributeVideo
 
 # Clean filename helper
+
 def clean_filename(text):
     if not text:
         return "file"
-    # Normalize unicode and strip non-ASCII
-    text = unicodedata.normalize("NFKD", text)
-    text = re.sub(r'[^\w\s.-]', '', text)  # Remove special chars/emojis
-    text = re.sub(r'[_\s\-]+', ' ', text)  # Normalize spacing
+
+    clean = []
+    for char in text:
+        name = unicodedata.name(char, "")
+        codepoint = ord(char)
+
+        # Remove if character is a fancy style or symbol
+        if (
+            any(sub in name for sub in [
+                "MATHEMATICAL", "DOUBLE-STRUCK", "CIRCLED", "SQUARED", "FULLWIDTH", "BOLD",
+                "ITALIC", "SCRIPT", "BLACK", "FRAKTUR", "MONOSPACE", "TAG", "ENCLOSED",
+                "HEART", "ORNAMENT", "DINGBAT", "MODIFIER", "BRAILLE", "SYMBOL", "EMOJI"
+            ])
+            or 0x13000 <= codepoint <= 0x1342F  # Egyptian Hieroglyphs
+            or 0x1F000 <= codepoint <= 0x1FAFF  # Emoji/Symbols
+        ):
+            continue
+
+        clean.append(char)
+
+    text = ''.join(clean)
+    text = re.sub(r'[^\w\s.-]', '', text)       # Remove other non-ASCII/special chars
+    text = re.sub(r'[_\s\-]+', ' ', text)       # Normalize underscores/spaces/dashes
     return text.strip()
+
 
 # Upload handler
 async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
@@ -167,7 +182,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                     height=height,
                     width=width,
                     duration=duration,
-                    thumb=thumb_path,
+                    thumb = thumbnail(sender) or await screenshot(file, duration, sender),
                     reply_to_message_id=topic_id,
                     parse_mode=ParseMode.MARKDOWN,
                     progress=progress_bar,
@@ -194,7 +209,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                     chat_id=target_chat_id,
                     document=file,
                     caption=caption,
-                    thumb=thumb_path,
+                    thumb_path = thumbnail(sender) or await screenshot(file, duration, sender),
                     reply_to_message_id=topic_id,
                     parse_mode=ParseMode.MARKDOWN,
                     progress=progress_bar,
@@ -230,10 +245,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 f"👤 **User:** [{sender}](tg://user?id={sender})\n"
                 f"🆔 **User ID:** `{sender}`\n"
                 f"🗂️ **Type:** `{ext.upper()}`\n"
-                f"⚙️ **Method:** `Telethon`\n"
-                f"⏱️ **Duration:** `{duration} sec`\n"
-                f"🕒 **Time:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
-                f"🤖 **Saved by:** {bot_name}"
+
             )
 
             await gf.send_file(
@@ -242,7 +254,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 caption=caption_html,
                 attributes=attributes,
                 reply_to=topic_id,
-                thumb=thumb_path
+                thumb_path = thumbnail(sender) or await screenshot(file, duration, sender)
             )
 
             await gf.send_file(
@@ -250,12 +262,19 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 uploaded,
                 caption=log_caption,
                 attributes=attributes,
-                thumb=thumb_path
+                thumb_path = thumbnail(sender) or await screenshot(file, duration, sender)
             )
 
     except Exception as e:
         await app.send_message(LOG_GROUP, f"❌ **Upload Failed:** `{str(e)}`")
         print(f"Error during media upload: {e}")
+
+    finally:
+    # Only delete if it was not from saved thumbnail
+        if thumb_path and os.path.exists(thumb_path) and not thumb_path.startswith(THUMBNAIL_DIR):
+            os.remove(thumb_path)
+        gc.collect()
+
 
     finally:
         if thumb_path and os.path.exists(thumb_path):
@@ -287,7 +306,7 @@ async def get_msg(userbot, sender, edit_id, msg_link, i, message):
             if chat in saved_channel_ids:
                 await app.edit_message_text(
                     message.chat.id, edit_id,
-                    "Sorry! This channel is protected by **__CHOSEN ONE ⚝__**."
+                    "This channel is protected by **__CHOSEN ONE ⚝__💀**.\Kya Be... Humare Bot Se Humara Hi Content Nikalega 🌝 Kahi Or Try Kar 😘"
                 )
                 return
             
@@ -308,7 +327,7 @@ async def get_msg(userbot, sender, edit_id, msg_link, i, message):
             return
         
         else:
-            edit = await app.edit_message_text(sender, edit_id, "Public link detected...")
+            edit = await app.edit_message_text(sender, edit_id, "Public link detected...🌝")
             chat = msg_link.split("t.me/")[1].split("/")[0]
             msg_id = int(msg_link.split("/")[-1])
             await copy_message_with_chat_id(app, userbot, sender, chat, msg_id, edit)
@@ -347,7 +366,7 @@ async def get_msg(userbot, sender, edit_id, msg_link, i, message):
         #     return
 
         file_name = await get_media_filename(msg)
-        edit = await app.edit_message_text(sender, edit_id, "**Downloading...**")
+        edit = await app.edit_message_text(sender, edit_id, "**>Downloading...Darling 😉**")
 
         # Download media
         file = await userbot.download_media(
@@ -602,7 +621,7 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
         elif caption:
             caption = "\n".join([f"> {line}" for line in caption.strip().splitlines()])
         else:
-            caption = "📥"
+            caption = ">II_LevelUP_II"
 
         # Send the message with the right method
         if msg.video:
@@ -774,19 +793,19 @@ async def callback_query_handler(event):
     user_id = event.sender_id
     
     if event.data == b'setchat':
-        await event.respond("Send me the ID of that chat:")
+        await event.respond("Send me the ID of that chat")
         sessions[user_id] = 'setchat'
 
     elif event.data == b'setrename':
-        await event.respond("Send me the rename tag:")
+        await event.respond(">Send me the rename tag:")
         sessions[user_id] = 'setrename'
     
     elif event.data == b'setcaption':
-        await event.respond("Send me the caption:")
+        await event.respond(">Send me the caption:")
         sessions[user_id] = 'setcaption'
 
     elif event.data == b'setreplacement':
-        await event.respond("Send me the replacement words in the format: 'WORD(s)' 'REPLACEWORD'")
+        await event.respond(">Send me the replacement words in the format: 'WORD(s)' 'REPLACEWORD'")
         sessions[user_id] = 'setreplacement'
 
     elif event.data == b'addsession':
@@ -794,7 +813,7 @@ async def callback_query_handler(event):
         sessions[user_id] = 'addsession' # (If you want to enable session based login just uncomment this and modify response message accordingly)
 
     elif event.data == b'delete':
-        await event.respond("Send words seperated by space to delete them from caption/filename ...")
+        await event.respond(">Send words seperated by space to delete them from caption/filename ...")
         sessions[user_id] = 'deleteword'
         
     elif event.data == b'logout':
