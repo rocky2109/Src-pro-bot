@@ -833,13 +833,12 @@ async def callback_query_handler(event):
             await event.respond("✅ You have been **logged out** and your session was removed successfully.")
         else:
             await event.respond("⚠️ You are not logged in.")
-    
-    
-    elif data == b'setthumb':
+
+    elif data == 'setthumb':
         pending_photos[user_id] = True
         await event.respond("📸 Send the **photo** you want to use as your custom thumbnail.")
 
-    elif data == b'pdfwt':
+    elif data == 'pdfwt':
         await event.respond("🔒 PDF watermarking is available for **Pro+ Plan** users.\n\n👉 Contact [@GeniusJunctionX](https://t.me/GeniusJunctionX) to upgrade.")
 
 
