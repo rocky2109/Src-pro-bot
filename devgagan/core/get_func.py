@@ -1,4 +1,4 @@
-# ---------------------------------------------------
+1# ---------------------------------------------------
 # File Name: get_func.py
 # Description: A Pyrogram bot for downloading files from Telegram channels or groups 
 #              and uploading them back to Telegram.
@@ -151,26 +151,29 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
         width, height, duration = metadata['width'], metadata['height'], metadata['duration']
         thumb_path = await screenshot(file, duration, sender)
 
-        ext = file.split('.')[-1].lower()
-        raw_name = os.path.basename(file)
-        clean_name = clean_filename(os.path.splitext(raw_name)[0])
-        file_name = f"{clean_name}.{ext}"
-
-        video_formats = {'mp4', 'mkv', 'avi', 'mov'}
-        image_formats = {'jpg', 'png', 'jpeg'}
+        # Replace these lines:
+        # ext = file.split('.')[-1].lower()
+        # raw_name = os.path.basename(file)
+        # clean_name = clean_filename(os.path.splitext(raw_name)[0])
+        # file_name = f"{clean_name}.{ext}"
+        
+        # With this rename_file call (added right after screenshot generation):
+        renamed_file = await rename_file(file, sender, caption=caption)
+        file_name = os.path.basename(renamed_file)
+        ext = renamed_file.split('.')[-1].lower()
 
         # ────── Pyrogram Upload ──────
         if upload_method == "Pyrogram":
-            if ext in video_formats:
+            if ext in {'mp4', 'mkv', 'avi', 'mov'}:
                 file_type = "Video"
                 dm = await app.send_video(
                     chat_id=target_chat_id,
-                    video=file,
+                    video=renamed_file,  # Use the renamed file
                     caption=caption,
                     height=height,
                     width=width,
                     duration=duration,
-                    thumb = thumbnail(sender) or await screenshot(file, duration, sender),
+                    thumb=thumb_path,
                     reply_to_message_id=topic_id,
                     parse_mode=ParseMode.MARKDOWN,
                     progress=progress_bar,
@@ -178,11 +181,11 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 )
                 await log_upload(sender, file_type, dm, "Pyrogram", duration, file_name)
 
-            elif ext in image_formats:
+            elif ext in {'jpg', 'png', 'jpeg'}:
                 file_type = "Photo"
                 dm = await app.send_photo(
                     chat_id=target_chat_id,
-                    photo=file,
+                    photo=renamed_file,  # Use the renamed file
                     caption=caption,
                     parse_mode=ParseMode.MARKDOWN,
                     progress=progress_bar,
@@ -195,7 +198,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 file_type = f"Document ({ext})"
                 dm = await app.send_document(
                     chat_id=target_chat_id,
-                    document=file,
+                    document=renamed_file,  # Use the renamed file
                     caption=caption,
                     thumb=thumb_path,
                     reply_to_message_id=topic_id,
@@ -205,6 +208,8 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 )
                 await asyncio.sleep(2)
                 await log_upload(sender, file_type, dm, "Pyrogram", file_name=file_name)
+
+        # ... rest of your Telethon upload code ...
 
         # ────── Telethon Upload ──────
         elif upload_method == "Telethon":
@@ -1073,41 +1078,35 @@ import asyncio
 import unicodedata
 
 def strip_unicode_junk(text: str) -> str:
-    """Completely remove all styled/fancy characters (does NOT convert to normal letters)"""
+    """Remove fancy fonts but preserve normal spaces"""
     clean = []
     for char in text:
-        # Skip if it's a control character or whitespace
-        if unicodedata.category(char)[0] in ('C', 'Z'):
-            continue
-            
-        # Get Unicode name and codepoint
         name = unicodedata.name(char, "")
         codepoint = ord(char)
 
-        # Check if character is in basic Latin ranges (normal letters/numbers)
-        is_basic_latin = (
-            0x0020 <= codepoint <= 0x007E or  # Basic Latin
+        # Keep normal spaces (U+0020) and no-break spaces (U+00A0)
+        if char in (' ', '\u00A0'):
+            clean.append(' ')  # Convert all spaces to normal space
+            continue
+
+        # Basic Latin characters (including numbers, letters, basic punctuation)
+        if (0x0020 <= codepoint <= 0x007E or  # Basic Latin
             0x00A0 <= codepoint <= 0x00FF or  # Latin-1 Supplement
-            0x0100 <= codepoint <= 0x017F     # Latin Extended-A
-        )
-        
-        # Only keep if it's basic Latin and NOT any fancy/styled variant
-        if is_basic_latin and not any(
-            style in name for style in [
+            0x0100 <= codepoint <= 0x017F):   # Latin Extended-A
+            if not any(style in name for style in [
                 "MATHEMATICAL", "DOUBLE-STRUCK", "BOLD",
                 "ITALIC", "SCRIPT", "FRAKTUR"
-            ]
-        ):
-            clean.append(char)
-            
-    # Join cleaned characters and normalize
+            ]):
+                clean.append(char)
+    
+    # Normalize spaces (collapse multiple spaces, keep single spaces)
     result = ''.join(clean)
-    result = re.sub(r'[^\w\s-]', '', result)  # Remove remaining special chars
-    result = re.sub(r'\s+', ' ', result)      # Collapse multiple spaces
+    result = re.sub(r'[^\w\s-]', '', result)  # Still remove other special chars
+    result = re.sub(r'[ \t]+', ' ', result)   # Only collapse horizontal whitespace
     return result.strip()
 
 # ✅ Clean rename function with junk filter
-async def rename_file(file, sender):
+async def rename_file(file, sender, caption=None):
     delete_words = load_delete_words(sender)
     replacements = load_replacement_words(sender)
     custom_rename_tag = get_user_rename_preference(sender)
@@ -1115,46 +1114,78 @@ async def rename_file(file, sender):
     # Split filename into name + extension
     base_name, ext = os.path.splitext(file)
     ext = ext if ext and len(ext) <= 6 else ".mp4"
+    original_base = os.path.basename(base_name)
+
+    # Use caption if filename is empty/generic
+    if not original_base.strip() or original_base.lower() in ['untitled', 'noname', 'video', 'image']:
+        if caption:
+            # Take first 50 words of caption as filename
+            words = caption.split()[:50]
+            base_name = ' '.join(words)
+        else:
+            # Fallback to timestamp if no caption
+            base_name = f"file_{int(time.time())}"
+    else:
+        base_name = original_base
+
+    # Clean the base name
     base_name = os.path.basename(base_name)
 
-    # Replace @mention
-    base_name = re.sub(r'@\w+', '@Src_pro_bot', base_name)
-
-    # Delete unwanted words
+    # Apply text transformations
+    base_name = re.sub(r'@\w+', '@Src_pro_bot', base_name)  # Replace mentions
     for word in delete_words:
-        base_name = base_name.replace(word, "")
-
-    # Replace using user-defined words
+        base_name = base_name.replace(word, "")  # Remove banned words
     for word, replace_word in replacements.items():
-        base_name = base_name.replace(word, replace_word)
+        base_name = base_name.replace(word, replace_word)  # Apply word replacements
 
-    # 🔥 Remove stylish Unicode, emojis, and fancy fonts
+    # Clean Unicode while preserving spaces and basic punctuation
     base_name = strip_unicode_junk(base_name)
 
-    # Final filename with custom tag
-    new_file_name = f"{base_name} {custom_rename_tag}{ext}".strip()
+    # Final filename assembly
+    new_file_name = f"{base_name.strip()} {custom_rename_tag}{ext}".strip()
+    
+    # Ensure filename isn't empty after processing
+    if not os.path.splitext(new_file_name)[0]:
+        new_file_name = f"document_{int(time.time())}{ext}"
 
-    # Rename the actual file
+    # Perform the rename
     await asyncio.to_thread(os.rename, file, new_file_name)
     return new_file_name
 
 
-async def sanitize(file_name: str) -> str:
-    sanitized_name = re.sub(r'[\\/:"*?<>|]', '_', file_name)
-    # Strip leading/trailing whitespaces
-    return sanitized_name.strip()
+def striresult.strip()
+(text: str) -> str:
+    """Remove fancy fonts while preserving:
+    - Normal spaces
+    - Basic punctuation (. , ! ? - _)
+    - Alphanumeric characters
+    """
+    clean = []
+    for char in text:
+        # Always preserve these characters
+        if char in ' .,!?-_':
+            clean.append(char)
+            continue
+            
+        # Check Unicode properties
+        name = unicodedata.name(char, "")
+        cat = unicodedata.category(char)
+        codepoint = ord(char)
+
+        # Keep basic characters
+        if (cat.startswith('L') or  # Letters
+            cat.startswith('N')):   # Numbers
+            # Exclude styled characters (bold, italic, etc.)
+            if not any(style in name for style in [
+                "MATHEMATICAL", "DOUBLE-STRUCK", "BOLD",
+                "ITALIC", "SCRIPT", "FRAKTUR", "CIRCLED"
+            ]):
+                clean.append(char)
     
-async def is_file_size_exceeding(file_path, size_limit):
-    try:
-        return os.path.getsize(file_path) > size_limit
-    except FileNotFoundError:
-        print(f"File not found: {file_path}")
-        return False
-    except Exception as e:
-        print(f"Error while checking file size: {e}")
-        return False
-
-
+    # Final cleanup
+    result = ''.join(clean)
+    result = re.sub(r'\s+', ' ', result)  # Normalize whitespace
+    return result.strip()
 user_progress = {}
 
 def progress_callback(done, total, user_id):
