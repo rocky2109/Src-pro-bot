@@ -1148,41 +1148,6 @@ async def rename_file(file, sender, caption=None):
     return new_file_name
 
 
-def striresult.strip()
-(text: str) -> str:
-    """Remove fancy fonts while preserving:
-    - Normal spaces
-    - Basic punctuation (. , ! ? - _)
-    - Alphanumeric characters
-    """
-    clean = []
-    for char in text:
-        # Always preserve these characters
-        if char in ' .,!?-_':
-            clean.append(char)
-            continue
-            
-        # Check Unicode properties
-        name = unicodedata.name(char, "")
-        cat = unicodedata.category(char)
-        codepoint = ord(char)
-
-        # Keep basic characters
-        if (cat.startswith('L') or  # Letters
-            cat.startswith('N')):   # Numbers
-            # Exclude styled characters (bold, italic, etc.)
-            if not any(style in name for style in [
-                "MATHEMATICAL", "DOUBLE-STRUCK", "BOLD",
-                "ITALIC", "SCRIPT", "FRAKTUR", "CIRCLED"
-            ]):
-                clean.append(char)
-    
-    # Final cleanup
-    result = ''.join(clean)
-    result = re.sub(r'\s+', ' ', result)  # Normalize whitespace
-    return result.strip()
-user_progress = {}
-
 def progress_callback(done, total, user_id):
     # Check if this user already has progress tracking
     if user_id not in user_progress:
