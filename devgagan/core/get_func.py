@@ -1089,69 +1089,58 @@ async def handle_large_file(file, sender, edit, caption):
         gc.collect()
         return
 
-import os
-import re
-import asyncio
-import unicodedata
-
-import re
-import unicodedata
-
 import re
 import unicodedata
 
 def strip_unicode_junk(text: str) -> str:
-    """Remove stylized/emoji/fancy characters while preserving Indian scripts like Gujarati, Hindi."""
     clean = []
     for char in text:
         codepoint = ord(char)
-        name = unicodedata.name(char, '')
+        name = unicodedata.name(char, "")
 
-        # ✅ Keep Indian scripts: Hindi (Devanagari), Gujarati, etc.
+        # ✅ Preserve Indian scripts: Hindi (Devanagari), Gujarati, Telugu, etc.
         if (
-            0x0900 <= codepoint <= 0x097F or   # Devanagari (Hindi, Marathi)
-            0x0A80 <= codepoint <= 0x0AFF or   # Gujarati
-            0x0B80 <= codepoint <= 0x0BFF      # Tamil (optional: expand for more)
+            0x0900 <= codepoint <= 0x097F or  # Devanagari
+            0x0A80 <= codepoint <= 0x0AFF or  # Gujarati
+            0x0980 <= codepoint <= 0x09FF or  # Bengali
+            0x0B80 <= codepoint <= 0x0BFF or  # Tamil
+            0x0C80 <= codepoint <= 0x0CFF or  # Kannada
+            0x0D00 <= codepoint <= 0x0D7F or  # Malayalam
+            0x0C00 <= codepoint <= 0x0C7F     # Telugu
         ):
             clean.append(char)
             continue
 
-        # ✅ Keep basic Latin characters (not stylized ones)
-        if 'LATIN' in name and not any(x in name for x in [
-            'BOLD', 'ITALIC', 'SCRIPT', 'DOUBLE-STRUCK', 'FULLWIDTH', 'FRAKTUR', 'CIRCLED'
-        ]):
+        # ✅ Allow basic Latin letters (but skip stylized)
+        if 'LATIN' in name and not any(x in name for x in ['BOLD', 'ITALIC', 'SCRIPT', 'FRAKTUR', 'DOUBLE-STRUCK']):
             clean.append(char)
             continue
 
-        # ✅ Keep basic characters and filename-safe symbols
-        if char.isdigit() or char in (' ', '.', '-', '(', ')', '[', ']'):
+        # ✅ Allow safe symbols (basic filename characters)
+        if char.isdigit() or char in (' ', '.', '-', '_', '(', ')', '[', ']'):
             clean.append(char)
             continue
 
-        # ❌ Remove emojis, symbols, stylized
+        # ❌ Skip emojis, stylized text, etc.
         if any(x in name for x in [
-            "EMOJI", "SYMBOL", "ORNAMENT", "DINGBAT", "HEART", "TAG", "MODIFIER", "ARABIC", "COMBINING"
+            'EMOJI', 'SYMBOL', 'DINGBAT', 'FRAKTUR', 'DOUBLE-STRUCK', 'SCRIPT', 'TAG',
+            'CIRCLED', 'SQUARED', 'HEART', 'BLACK', 'MODIFIER', 'BOLD', 'ITALIC'
         ]) or (
-            0x1F000 <= codepoint <= 0x1FAFF or   # Emojis
-            0x13000 <= codepoint <= 0x1342F      # Ancient symbols
+            0x1F000 <= codepoint <= 0x1FAFF or
+            0x13000 <= codepoint <= 0x1342F
         ):
             continue
 
-        # ❌ Stylized Latin or any other unusual unicode? Remove.
-        if any(x in name for x in [
-            "MATHEMATICAL", "SCRIPT", "FULLWIDTH", "FRAKTUR", "BOLD", "ITALIC", "CIRCLED", "DOUBLE-STRUCK"
-        ]):
-            continue
+        # 🟢 If not suspicious, allow
+        clean.append(char)
 
-        # 🟡 Optional fallback: keep if nothing flagged it
-        # clean.append(char)
-
+    # Normalize spacing
     result = ''.join(clean)
+    result = re.sub(r'[_\s\-]+', ' ', result)  # Clean up extra underscores/dashes
+    result = re.sub(r'[^\w\s.\-()\[\]]', '', result)  # Allow alphanumeric + few safe symbols
 
-    # Normalize spaces, dashes, and underscores
-    result = re.sub(r'[_\s\-]+', ' ', result)
-    result = re.sub(r'[^\w\s.\-()\[\]–—]', '', result)
     return result.strip()
+
 
 
 # ✅ Clean rename function with junk filter
