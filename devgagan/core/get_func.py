@@ -132,15 +132,38 @@ from telethon.tl.types import DocumentAttributeVideo
 # Clean filename helper
 
 # Clean filename helper
-def clean_filename(text):
+def clean_filename(text: str) -> str:
     if not text:
         return "file"
-    # Normalize unicode and strip non-ASCII
-    text = unicodedata.normalize("NFKD", text)
-    text = re.sub(r'[^\w\s.-]', '', text)  # Remove special chars/emojis
-    text = re.sub(r'[_\s\-]+', ' ', text)  # Normalize spacing
-    return text.strip()
 
+    clean = []
+    for char in text:
+        name = unicodedata.name(char, "")
+        codepoint = ord(char)
+
+        # ❌ Skip stylized/fancy English and emoji blocks
+        if (
+            any(sub in name for sub in [
+                "MATHEMATICAL", "DOUBLE-STRUCK", "CIRCLED", "SQUARED", "FULLWIDTH", "BOLD",
+                "ITALIC", "SCRIPT", "BLACK", "FRAKTUR", "MONOSPACE", "TAG", "ENCLOSED",
+                "HEART", "ORNAMENT", "DINGBAT", "MODIFIER", "BRAILLE", "SYMBOL", "EMOJI"
+            ])
+            or 0x1F000 <= codepoint <= 0x1FAFF    # Emoji/symbol range
+            or 0x13000 <= codepoint <= 0x1342F    # Egyptian hieroglyphs
+        ):
+            continue  # skip stylized and emoji characters
+
+        clean.append(char)
+
+    text = ''.join(clean)
+
+    # ✅ Remove only non-useful special symbols (preserve ., -, (), [], and all Indian characters)
+    text = re.sub(r'[^\w\s.\-()\[\]–—]', '', text)
+
+    # ✅ Normalize spacing (no underscore)
+    text = re.sub(r'\s+', ' ', text)
+
+    return text.strip()
 
 # Upload handler
 async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
