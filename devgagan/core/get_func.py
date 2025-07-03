@@ -1094,33 +1094,60 @@ import re
 import asyncio
 import unicodedata
 
+import re
+import unicodedata
+
 def strip_unicode_junk(text: str) -> str:
-    """Remove fancy fonts but preserve normal spaces"""
+    """Remove stylized/emoji characters but preserve Indian scripts."""
     clean = []
     for char in text:
         name = unicodedata.name(char, "")
         codepoint = ord(char)
 
-        # Keep normal spaces (U+0020) and no-break spaces (U+00A0)
-        if char in (' ', '\u00A0'):
-            clean.append(' ')  # Convert all spaces to normal space
+        # ✅ Always allow whitespace
+        if char in (' ', '\u00A0', '\t', '\n'):
+            clean.append(' ')
             continue
 
-        # Basic Latin characters (including numbers, letters, basic punctuation)
-        if (0x0020 <= codepoint <= 0x007E or  # Basic Latin
-            0x00A0 <= codepoint <= 0x00FF or  # Latin-1 Supplement
-            0x0100 <= codepoint <= 0x017F):   # Latin Extended-A
-            if not any(style in name for style in [
-                "MATHEMATICAL", "DOUBLE-STRUCK", "BOLD",
-                "ITALIC", "SCRIPT", "FRAKTUR"
-            ]):
-                clean.append(char)
-    
-    # Normalize spaces (collapse multiple spaces, keep single spaces)
-    result = ''.join(clean)
-    result = re.sub(r'[^\w\s-]', '', result)  # Still remove other special chars
-    result = re.sub(r'[ \t]+', ' ', result)   # Only collapse horizontal whitespace
-    return result.strip()
+        # ✅ Allow Devanagari, Gujarati, Tamil, Telugu, Kannada, Malayalam, Bengali, etc.
+        if (
+            0x0900 <= codepoint <= 0x097F or  # Devanagari
+            0x0A80 <= codepoint <= 0x0AFF or  # Gujarati
+            0x0980 <= codepoint <= 0x09FF or  # Bengali
+            0x0B80 <= codepoint <= 0x0BFF or  # Tamil
+            0x0C00 <= codepoint <= 0x0C7F or  # Telugu
+            0x0C80 <= codepoint <= 0x0CFF or  # Kannada
+            0x0D00 <= codepoint <= 0x0D7F or  # Malayalam
+            0x0D80 <= codepoint <= 0x0DFF or  # Sinhala
+            0x0041 <= codepoint <= 0x007A or  # Basic Latin a-z A-Z
+            0x0030 <= codepoint <= 0x0039     # Numbers
+        ):
+            clean.append(char)
+            continue
+
+        # ❌ Remove known stylized fonts and emoji
+        if any(keyword in name for keyword in [
+            "MATHEMATICAL", "CIRCLED", "SQUARED", "FULLWIDTH", "BOLD", "ITALIC", "SCRIPT",
+            "FRAKTUR", "TAG", "ENCLOSED", "HEART", "DINGBAT", "ORNAMENT", "SYMBOL", "EMOJI"
+        ]):
+            continue
+
+        # ❌ Remove emojis/symbols Unicode blocks
+        if (
+            0x1F000 <= codepoint <= 0x1FAFF or  # Emoji
+            0x13000 <= codepoint <= 0x1342F     # Hieroglyphs
+        ):
+            continue
+
+        # Default: allow if it's not stylized or emoji
+        clean.append(char)
+
+    # 🧹 Final cleanup
+    text = ''.join(clean)
+    text = re.sub(r'[^\w\s.\-()\[\]–—]', '', text)  # Remove invalid punctuation
+    text = re.sub(r'[_\s\-]+', ' ', text)           # Normalize spacing
+    return text.strip()
+
 
 # ✅ Clean rename function with junk filter
 async def rename_file(file, sender, caption=None):
