@@ -129,9 +129,6 @@ from datetime import datetime
 from pyrogram.enums import ParseMode
 from telethon.tl.types import DocumentAttributeVideo
 
-# Clean filename helper
-
-# Clean filename helper
 def clean_filename(text: str) -> str:
     if not text:
         return "file"
@@ -141,29 +138,31 @@ def clean_filename(text: str) -> str:
         name = unicodedata.name(char, "")
         codepoint = ord(char)
 
-        # ❌ Skip stylized/fancy English and emoji blocks
+        # ❌ Skip known stylized or emoji blocks
         if (
             any(sub in name for sub in [
                 "MATHEMATICAL", "DOUBLE-STRUCK", "CIRCLED", "SQUARED", "FULLWIDTH", "BOLD",
                 "ITALIC", "SCRIPT", "BLACK", "FRAKTUR", "MONOSPACE", "TAG", "ENCLOSED",
                 "HEART", "ORNAMENT", "DINGBAT", "MODIFIER", "BRAILLE", "SYMBOL", "EMOJI"
             ])
-            or 0x1F000 <= codepoint <= 0x1FAFF    # Emoji/symbol range
-            or 0x13000 <= codepoint <= 0x1342F    # Egyptian hieroglyphs
+            or 0x1F000 <= codepoint <= 0x1FAFF   # Emojis
+            or 0x13000 <= codepoint <= 0x1342F   # Hieroglyphs
         ):
-            continue  # skip stylized and emoji characters
+            continue  # Remove fancy or emoji-like characters
 
         clean.append(char)
 
+    # ✅ Rebuild text from clean chars
     text = ''.join(clean)
 
-    # ✅ Remove only non-useful special symbols (preserve ., -, (), [], and all Indian characters)
-    text = re.sub(r'[^\w\s.\-()\[\]–—]', '', text)
+    # ✅ Remove only known unusable symbols (but preserve Devanagari etc.)
+    text = re.sub(r'[^\w\s.\-()\[\]–—\u0900-\u097F\u0A80-\u0AFF\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F\u0D80-\u0DFF\u0E00-\u0E7F\u0A00-\u0A7F\u0980-\u09FF\u0A00-\u0A7F]', '', text)
 
-    # ✅ Normalize spacing (no underscore)
-    text = re.sub(r'\s+', ' ', text)
+    # ✅ Normalize spacing (remove multiple underscores/space/dash combos)
+    text = re.sub(r'[_\s\-]+', ' ', text)
 
     return text.strip()
+
 
 # Upload handler
 async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
