@@ -138,27 +138,37 @@ def clean_filename(text: str) -> str:
         name = unicodedata.name(char, "")
         codepoint = ord(char)
 
-        # ❌ Skip known stylized or emoji blocks
+        # ❌ Skip emojis and stylized/fancy characters
         if (
             any(sub in name for sub in [
                 "MATHEMATICAL", "DOUBLE-STRUCK", "CIRCLED", "SQUARED", "FULLWIDTH", "BOLD",
                 "ITALIC", "SCRIPT", "BLACK", "FRAKTUR", "MONOSPACE", "TAG", "ENCLOSED",
                 "HEART", "ORNAMENT", "DINGBAT", "MODIFIER", "BRAILLE", "SYMBOL", "EMOJI"
             ])
-            or 0x1F000 <= codepoint <= 0x1FAFF   # Emojis
-            or 0x13000 <= codepoint <= 0x1342F   # Hieroglyphs
+            or 0x1F000 <= codepoint <= 0x1FAFF  # Emoji block
+            or 0x13000 <= codepoint <= 0x1342F  # Hieroglyphs
         ):
-            continue  # Remove fancy or emoji-like characters
+            continue
 
         clean.append(char)
 
-    # ✅ Rebuild text from clean chars
     text = ''.join(clean)
 
-    # ✅ Remove only known unusable symbols (but preserve Devanagari etc.)
-    text = re.sub(r'[^\w\s.\-()\[\]–—\u0900-\u097F\u0A80-\u0AFF\u0B80-\u0BFF\u0C00-\u0C7F\u0C80-\u0CFF\u0D00-\u0D7F\u0D80-\u0DFF\u0E00-\u0E7F\u0A00-\u0A7F\u0980-\u09FF\u0A00-\u0A7F]', '', text)
+    # ✅ Allow Indian scripts and useful symbols only
+    text = re.sub(
+        r'[^a-zA-Z0-9\s.\-()\[\]–—'
+        r'\u0900-\u097F'  # Devanagari
+        r'\u0A80-\u0AFF'  # Gujarati
+        r'\u0980-\u09FF'  # Bengali
+        r'\u0B80-\u0BFF'  # Tamil
+        r'\u0C00-\u0C7F'  # Telugu
+        r'\u0C80-\u0CFF'  # Kannada
+        r'\u0D00-\u0D7F'  # Malayalam
+        r'\u0A00-\u0A7F'  # Gurmukhi etc.
+        r']+', '', text
+    )
 
-    # ✅ Normalize spacing (remove multiple underscores/space/dash combos)
+    # ✅ Normalize spacing
     text = re.sub(r'[_\s\-]+', ' ', text)
 
     return text.strip()
