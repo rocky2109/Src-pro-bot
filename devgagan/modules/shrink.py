@@ -24,6 +24,7 @@ from devgagan.core.func import *
 from datetime import datetime, timedelta
 from motor.motor_asyncio import AsyncIOMotorClient
 from config import MONGO_DB, WEBSITE_URL, AD_API, LOG_GROUP  
+from pyrogram.types import Message
 
 tclient = AsyncIOMotorClient(MONGO_DB)
 tdb = tclient["telegram_bot"]
