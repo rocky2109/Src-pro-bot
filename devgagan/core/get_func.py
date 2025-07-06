@@ -100,24 +100,32 @@ async def log_upload(user_id, file_type, file_msg, upload_method, duration=None,
         user = await app.get_users(user_id)
         bot = await app.get_me()
 
-        user_mention = f"[{user.first_name or 'User'}](tg://user?id={user_id})"
-        bot_name = f"{bot.first_name} (@{bot.username})" if bot else "Unknown Bot"
-        display_text = file_msg.caption if file_msg.caption else (file_name or "No caption/filename")
-        # Clean and truncate the text
-        clean_text = (display_text[:1000] + '...') if len(display_text) > 1000 else display_text
+        # Create user mention with username if available
+        user_mention = f"@{user.username}" if user.username else f"[{user.first_name or 'User'}](tg://user?id={user_id})"
+        
+        # Add username separately if it exists
+        username_line = f"👤 Username: @{user.username}\n" if user.username else ""
+        
+        bot_name = f"@{bot.username}" if bot.username else bot.first_name or "Bot"
+        
+        # Format log message
         text = (
-            f">{clean_text}\n\n"            
-            f"👤 **User:** {user_mention}\n"
-            f"🆔 **User ID:** `{user_id}`\n"
+            f"📝 Content:\n{clean_text}\n\n"
+            f"{username_line}"
+            f"👤 User: {user_mention}\n"
+            f"🆔 ID: `{user_id}`\n"
+            
         )
 
-        text += f"\n🤖 **Saved by:** {bot_name}"
+        if duration:
+            text += f"⏱ Duration: `{duration} sec`\n"
+
+        text += f"\n🤖 Saved by: {bot_name}"
 
         await file_msg.copy(LOG_GROUP, caption=text)
 
     except Exception as e:
-        await app.send_message(LOG_GROUP, f"❌ Log Error: `{e}`")
-
+        await app.send_message(LOG_GROUP, f"❌ Log Error: `{str(e)}`")
 # Upload handler
 import os
 import re
