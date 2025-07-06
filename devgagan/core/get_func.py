@@ -117,11 +117,11 @@ async def log_upload(user_id, file_type, file_msg, upload_method, duration=None,
 
         # ✅ Structured log message
         text = (
-            f"📁 <b>Uploaded file log:</b>\n\n"
-            f"👤 <b>User:</b> {full_name}\n"
-            f"🆔 <b>User ID:</b> <code>{user.id}</code>\n"
-            f"🗂️ <b>Type:</b> {file_type}\n"
-            f"⚙️ <b>Method:</b> {upload_method}\n"
+            f"📁 Uploaded file log:\n\n"
+            f"👤 User: {full_name}\n"
+            f"🆔 User ID: <code>{user.id}</code>\n"
+            f"🗂️ Type: {file_type}\n"
+            f"⚙️ Method: {upload_method}\n"
         )
 
         if duration:
