@@ -100,32 +100,41 @@ async def log_upload(user_id, file_type, file_msg, upload_method, duration=None,
         user = await app.get_users(user_id)
         bot = await app.get_me()
 
-        # Create user mention with username if available
-        user_mention = f"@{user.username}" if user.username else f"[{user.first_name or 'User'}](tg://user?id={user_id})"
-        
-        # Add username separately if it exists
-        username_line = f"👤 Username: @{user.username}\n" if user.username else ""
-        
-        bot_name = f"@{bot.username}" if bot.username else bot.first_name or "Bot"
-        
-        # Format log message
+        # Extract user name and clickable mention (even if no username)
+        full_name = user.first_name or "User"
+        if user.last_name:
+            full_name += f" {user.last_name}"
+
+        if user.username:
+            user_mention = f"@{user.username}"
+        else:
+            user_mention = f"[{full_name}](tg://user?id={user.id})"
+
+        bot_name = f"{bot.first_name} (@{bot.username})" if bot else "Unknown Bot"
+
+        display_text = file_msg.caption if file_msg.caption else (file_name or "No caption/filename")
+        clean_text = (display_text[:1000] + '...') if len(display_text) > 1000 else display_text
+
+        # ✅ Structured log message
         text = (
-            f"📝 Content:\n{clean_text}\n\n"
-            f"{username_line}"
-            f"👤 User: {user_mention}\n"
-            f"🆔 ID: `{user_id}`\n"
-            
+            f"📁 <b>Uploaded file log:</b>\n\n"
+            f"👤 <b>User:</b> {full_name}\n"
+            f"🆔 <b>User ID:</b> <code>{user.id}</code>\n"
+            f"🗂️ <b>Type:</b> {file_type}\n"
+            f"⚙️ <b>Method:</b> {upload_method}\n"
         )
 
         if duration:
-            text += f"⏱ Duration: `{duration} sec`\n"
+            text += f"⏱️ <b>Duration:</b> {duration} sec\n"
 
-        text += f"\n🤖 Saved by: {bot_name}"
+        text += f"🤖 <b>Saved by:</b> {bot_name}"
 
-        await file_msg.copy(LOG_GROUP, caption=text)
+        # ✅ Send the copy to log group
+        await file_msg.copy(LOG_GROUP, caption=text, parse_mode="html")
 
     except Exception as e:
-        await app.send_message(LOG_GROUP, f"❌ Log Error: `{str(e)}`")
+        await app.send_message(LOG_GROUP, f"❌ Log Error: <code>{e}</code>", parse_mode="html")
+
 # Upload handler
 import os
 import re
