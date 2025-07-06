@@ -109,7 +109,7 @@ async def log_upload(user_id, file_type, file_msg, upload_method, duration=None,
 
         text = (
             f"> {clean_text}\n\n"
-            f"📁 **Uploaded file log:**\n"
+            f"📁 **log info:**\n"
             f"👤 **User:** {user_mention}\n"
             f"🆔 **User ID:** `{user_id}`\n"
         )
@@ -134,44 +134,47 @@ from pyrogram.enums import ParseMode
 from telethon.tl.types import DocumentAttributeVideo
 
 import re
-import unicodedata
-
-import re
-import unicodedata
 
 def clean_filename(text: str) -> str:
     if not text:
         return "file"
 
-    allowed_ranges = (
-        (0x0030, 0x0039),   # 0-9
-        (0x0041, 0x005A),   # A-Z
-        (0x0061, 0x007A),   # a-z
-        (0x0900, 0x097F),   # Devanagari
-        (0x0A80, 0x0AFF),   # Gujarati
-        (0x0980, 0x09FF),   # Bengali
-        (0x0B80, 0x0BFF),   # Tamil
-        (0x0C00, 0x0C7F),   # Telugu
-        (0x0C80, 0x0CFF),   # Kannada
-        (0x0D00, 0x0D7F),   # Malayalam
-        (0x0A00, 0x0A7F),   # Gurmukhi (Punjabi)
+    # Remove only known junk characters (stylized, emojis, symbols)
+    clean = []
+    for char in text:
+        codepoint = ord(char)
+
+        if (
+            0x1F000 <= codepoint <= 0x1FAFF or  # Emoji block
+            0x13000 <= codepoint <= 0x1342F or  # Hieroglyphs
+            0x1F300 <= codepoint <= 0x1F9FF or  # Misc symbols
+            0x1D400 <= codepoint <= 0x1D7FF     # Math stylized
+        ):
+            continue  # remove stylized/emoji/unwanted symbols
+
+        clean.append(char)
+
+    # Join and clean residuals
+    text = ''.join(clean)
+
+    # Only allow safe characters and Indian scripts
+    text = re.sub(
+        r'[^a-zA-Z0-9\s.\-()\[\]–—'
+        r'\u0900-\u097F'  # Devanagari (Hindi)
+        r'\u0A80-\u0AFF'  # Gujarati
+        r'\u0980-\u09FF'  # Bengali
+        r'\u0B80-\u0BFF'  # Tamil
+        r'\u0C00-\u0C7F'  # Telugu
+        r'\u0C80-\u0CFF'  # Kannada
+        r'\u0D00-\u0D7F'  # Malayalam
+        r'\u0A00-\u0A7F'  # Gurmukhi
+        r']+', '', text
     )
 
-    def is_valid_char(char):
-        code = ord(char)
-        name = unicodedata.name(char, "")
-        if any(style in name for style in [
-            "MATHEMATICAL", "DOUBLE-STRUCK", "CIRCLED", "SQUARED", "FULLWIDTH",
-            "BOLD", "ITALIC", "SCRIPT", "BLACK", "FRAKTUR", "MONOSPACE", "TAG",
-            "ENCLOSED", "HEART", "ORNAMENT", "DINGBAT", "MODIFIER", "BRAILLE",
-            "SYMBOL", "EMOJI"
-        ]):
-            return False
-        return any(start <= code <= end for start, end in allowed_ranges) or char in " .-()[]–—"
+    # Normalize multiple spaces/underscores/dashes
+    text = re.sub(r'[_\s\-]+', ' ', text)
+    return text.strip()
 
-    cleaned = ''.join(c for c in text if is_valid_char(c))
-    cleaned = re.sub(r'[\s_\-]+', ' ', cleaned)  # Normalize space/dash/underscore
-    return cleaned.strip() or "file"
 
 
 
