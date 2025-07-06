@@ -137,6 +137,9 @@ from datetime import datetime
 from pyrogram.enums import ParseMode
 from telethon.tl.types import DocumentAttributeVideo
 
+import re
+import unicodedata
+
 def clean_filename(text: str) -> str:
     if not text:
         return "file"
@@ -146,12 +149,13 @@ def clean_filename(text: str) -> str:
         name = unicodedata.name(char, "")
         codepoint = ord(char)
 
-        # ❌ Skip emojis and stylized/fancy characters
+        # ❌ Skip emojis and stylized/fancy Unicode characters
         if (
             any(sub in name for sub in [
-                "MATHEMATICAL", "DOUBLE-STRUCK", "CIRCLED", "SQUARED", "FULLWIDTH", "BOLD",
-                "ITALIC", "SCRIPT", "BLACK", "FRAKTUR", "MONOSPACE", "TAG", "ENCLOSED",
-                "HEART", "ORNAMENT", "DINGBAT", "MODIFIER", "BRAILLE", "SYMBOL", "EMOJI"
+                "MATHEMATICAL", "DOUBLE-STRUCK", "CIRCLED", "SQUARED", "FULLWIDTH",
+                "BOLD", "ITALIC", "SCRIPT", "BLACK", "FRAKTUR", "MONOSPACE",
+                "TAG", "ENCLOSED", "HEART", "ORNAMENT", "DINGBAT", "MODIFIER",
+                "BRAILLE", "SYMBOL", "EMOJI"
             ])
             or 0x1F000 <= codepoint <= 0x1FAFF  # Emoji block
             or 0x13000 <= codepoint <= 0x1342F  # Hieroglyphs
@@ -160,23 +164,24 @@ def clean_filename(text: str) -> str:
 
         clean.append(char)
 
+    # 🧹 Join clean characters
     text = ''.join(clean)
 
-    # ✅ Allow Indian scripts and useful symbols only
+    # ✅ Only allow useful text and Indian languages
     text = re.sub(
         r'[^a-zA-Z0-9\s.\-()\[\]–—'
-        r'\u0900-\u097F'  # Devanagari
+        r'\u0900-\u097F'  # Devanagari (Hindi, Marathi)
         r'\u0A80-\u0AFF'  # Gujarati
         r'\u0980-\u09FF'  # Bengali
         r'\u0B80-\u0BFF'  # Tamil
         r'\u0C00-\u0C7F'  # Telugu
         r'\u0C80-\u0CFF'  # Kannada
         r'\u0D00-\u0D7F'  # Malayalam
-        r'\u0A00-\u0A7F'  # Gurmukhi etc.
+        r'\u0A00-\u0A7F'  # Gurmukhi (Punjabi)
         r']+', '', text
     )
 
-    # ✅ Normalize spacing
+    # 🧹 Normalize spacing and dashes
     text = re.sub(r'[_\s\-]+', ' ', text)
 
     return text.strip()
