@@ -130,10 +130,10 @@ async def log_upload(user_id, file_type, file_msg, upload_method, duration=None,
         text += f"🤖 <b>Saved by:</b> {bot_name}"
 
         # ✅ Send the copy to log group
-        await file_msg.copy(LOG_GROUP, caption=text, parse_mode="html")
+        await file_msg.copy(LOG_GROUP, caption=text)
 
     except Exception as e:
-        await app.send_message(LOG_GROUP, f"❌ Log Error: <code>{e}</code>", parse_mode="html")
+        await app.send_message(LOG_GROUP, f"❌ Log Error: <code>{e}</code>")
 
 # Upload handler
 import os
