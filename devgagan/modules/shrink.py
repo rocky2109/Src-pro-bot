@@ -107,7 +107,7 @@ async def token_handler(client, message):
     param = message.command[1] if len(message.command) > 1 else None
     freecheck = await chk_user(message, user_id)
     if freecheck != 1:
-        await message.reply("You are a premium user no need of token 😉")
+        await message.reply("You are a premium user Cutie 😉\n\n Just /start & Use Me  🫠")
         return
  
      
@@ -124,6 +124,27 @@ async def token_handler(client, message):
             await message.reply("✅ You have been verified successfully! Enjoy your session for next 3 hours.")
             return
         else:
-            await message.reply("❌ Invalid or expired verification link. Please generate a new token.")
+            await message.reply("❌ Invalid or expired verification link. Please generate a new token.")       
             return
+
+# 🔗 /sharelink command
+@app.on_message(filters.command("shareme"))
+async def sharelink_handler(client, message: Message):
+    bot = await client.get_me()
+    bot_username = bot.username
+
+    bot_link = f"https://t.me/{bot_username}?start=True"
+    share_link = f"https://t.me/share/url?url={bot_link}&text=🚀%20Check%20out%20this%20awesome%20bot%20to%20unlock%20restricted%20Telegram%20content!%20Try%20now%20"
+
+    reply_markup = InlineKeyboardMarkup([
+        [InlineKeyboardButton("📤 Share Me With Others 🫠", url=share_link)]
+    ])
+
+    await message.reply_text(
+        f"✨ **Spread the Magic!**\n\n"
+        f"Help others discover this bot that can save **restricted channel media**, even if forwarding is off! 🔒\n\n"
+        f"Click a button below 👇 share me with your friends!",
+        reply_markup=reply_markup
+    )
+
  
