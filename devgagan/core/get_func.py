@@ -100,40 +100,27 @@ async def log_upload(user_id, file_type, file_msg, upload_method, duration=None,
         user = await app.get_users(user_id)
         bot = await app.get_me()
 
-        # Extract user name and clickable mention (even if no username)
-        full_name = user.first_name or "User"
-        if user.last_name:
-            full_name += f" {user.last_name}"
-
-        if user.username:
-            user_mention = f"@{user.username}"
-        else:
-            user_mention = f"[{full_name}](tg://user?id={user.id})"
+        # Keep mention format exactly like you want
+        user_mention = user.mention if user else "User"
 
         bot_name = f"{bot.first_name} (@{bot.username})" if bot else "Unknown Bot"
-
-        display_text = file_msg.caption if file_msg.caption else (file_name or "No caption/filename")
+        display_text = file_msg.caption or file_name or "No caption/filename"
         clean_text = (display_text[:1000] + '...') if len(display_text) > 1000 else display_text
 
-        # ✅ Structured log message
         text = (
-            f"📁 Uploaded file log:\n\n"
-            f"👤 User: {full_name}\n"
-            f"🆔 User ID: <code>{user.id}</code>\n"
-            f"🗂️ Type: {file_type}\n"
-            f"⚙️ Method: {upload_method}\n"
+            f"> {clean_text}\n\n"
+            f"📁 **Uploaded file log:**\n"
+            f"👤 **User:** {user_mention}\n"
+            f"🆔 **User ID:** `{user_id}`\n"
         )
 
-        if duration:
-            text += f"⏱️ <b>Duration:</b> {duration} sec\n"
+        text += f"🤖 **Saved by:** {bot_name}"
 
-        text += f"🤖 <b>Saved by:</b> {bot_name}"
-
-        # ✅ Send the copy to log group
         await file_msg.copy(LOG_GROUP, caption=text)
 
     except Exception as e:
-        await app.send_message(LOG_GROUP, f"❌ Log Error: <code>{e}</code>")
+        await app.send_message(LOG_GROUP, f"❌ Log Error: `{e}`")
+
 
 # Upload handler
 import os
@@ -149,51 +136,43 @@ from telethon.tl.types import DocumentAttributeVideo
 import re
 import unicodedata
 
+import re
+import unicodedata
+
 def clean_filename(text: str) -> str:
     if not text:
         return "file"
 
-    clean = []
-    for char in text:
-        name = unicodedata.name(char, "")
-        codepoint = ord(char)
-
-        # ❌ Skip emojis and stylized/fancy Unicode characters
-        if (
-            any(sub in name for sub in [
-                "MATHEMATICAL", "DOUBLE-STRUCK", "CIRCLED", "SQUARED", "FULLWIDTH",
-                "BOLD", "ITALIC", "SCRIPT", "BLACK", "FRAKTUR", "MONOSPACE",
-                "TAG", "ENCLOSED", "HEART", "ORNAMENT", "DINGBAT", "MODIFIER",
-                "BRAILLE", "SYMBOL", "EMOJI"
-            ])
-            or 0x1F000 <= codepoint <= 0x1FAFF  # Emoji block
-            or 0x13000 <= codepoint <= 0x1342F  # Hieroglyphs
-        ):
-            continue
-
-        clean.append(char)
-
-    # 🧹 Join clean characters
-    text = ''.join(clean)
-
-    # ✅ Only allow useful text and Indian languages
-    text = re.sub(
-        r'[^a-zA-Z0-9\s.\-()\[\]–—'
-        r'\u0900-\u097F'  # Devanagari (Hindi, Marathi)
-        r'\u0A80-\u0AFF'  # Gujarati
-        r'\u0980-\u09FF'  # Bengali
-        r'\u0B80-\u0BFF'  # Tamil
-        r'\u0C00-\u0C7F'  # Telugu
-        r'\u0C80-\u0CFF'  # Kannada
-        r'\u0D00-\u0D7F'  # Malayalam
-        r'\u0A00-\u0A7F'  # Gurmukhi (Punjabi)
-        r']+', '', text
+    allowed_ranges = (
+        (0x0030, 0x0039),   # 0-9
+        (0x0041, 0x005A),   # A-Z
+        (0x0061, 0x007A),   # a-z
+        (0x0900, 0x097F),   # Devanagari
+        (0x0A80, 0x0AFF),   # Gujarati
+        (0x0980, 0x09FF),   # Bengali
+        (0x0B80, 0x0BFF),   # Tamil
+        (0x0C00, 0x0C7F),   # Telugu
+        (0x0C80, 0x0CFF),   # Kannada
+        (0x0D00, 0x0D7F),   # Malayalam
+        (0x0A00, 0x0A7F),   # Gurmukhi (Punjabi)
     )
 
-    # 🧹 Normalize spacing and dashes
-    text = re.sub(r'[_\s\-]+', ' ', text)
+    def is_valid_char(char):
+        code = ord(char)
+        name = unicodedata.name(char, "")
+        if any(style in name for style in [
+            "MATHEMATICAL", "DOUBLE-STRUCK", "CIRCLED", "SQUARED", "FULLWIDTH",
+            "BOLD", "ITALIC", "SCRIPT", "BLACK", "FRAKTUR", "MONOSPACE", "TAG",
+            "ENCLOSED", "HEART", "ORNAMENT", "DINGBAT", "MODIFIER", "BRAILLE",
+            "SYMBOL", "EMOJI"
+        ]):
+            return False
+        return any(start <= code <= end for start, end in allowed_ranges) or char in " .-()[]–—"
 
-    return text.strip()
+    cleaned = ''.join(c for c in text if is_valid_char(c))
+    cleaned = re.sub(r'[\s_\-]+', ' ', cleaned)  # Normalize space/dash/underscore
+    return cleaned.strip() or "file"
+
 
 
 # Upload handler
@@ -810,7 +789,7 @@ async def send_settings_message(chat_id, user_id):
         [Button.inline("🖼️ Set Thumbnail", b'setthumb'), Button.inline("🧲 Remove Thumbnail", b'remthumb')],
         [Button.inline("🗂️ PDF Wtmrk", b'pdfwt'), Button.inline("🎥 Video Wtmrk", b'watermark')],
         [Button.inline("📤 Upload Method", b'uploadmethod')],  # Include the dynamic Fast DL button
-        [Button.url("⚠️ Report Errors", "https://t.me/GeniusJunctionX")]
+        [Button.url("💞 Contact Owner 🦋", "https://t.me/GeniusJunctionX")]
     ]
 
     await gf.send_file(
@@ -830,7 +809,7 @@ async def callback_query_handler(event):
 
     if data == 'setchat':
         await event.respond(
-            "🎯 **Setting Target Chat**\n\n"
+            "🎯 **Set Your Channel or Group**\n\n"
             "🆔 **Send the Chat ID** where you want to forward all posts automatically. 🌝\n\n"
             "💡 *Tip:* Just **add me to that chat**, then send `/id` in the Channel/Group.\n"
             "**I'll automatically detect the Chat ID.**"
@@ -838,7 +817,7 @@ async def callback_query_handler(event):
         sessions[user_id] = 'setchat'
     
     elif data == 'setrename':
-        await event.respond("✏️ Send the **rename tag** you want to use:")
+        await event.respond("✏️ Send the **rename tag** you want to set your custom name")
         sessions[user_id] = 'setrename'
 
     elif data == 'setcaption':
