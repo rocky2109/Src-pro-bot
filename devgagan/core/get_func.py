@@ -678,7 +678,7 @@ def format_caption(original_caption, sender, custom_caption):
     replacements = load_replacement_words(sender)
 
     # ✅ Replace all @mentions with your bot's handle
-    original_caption = re.sub(r'@\w+', '@Src_pro_bot', original_caption)
+    original_caption = re.sub(r'@\w+', '@Chosen_Onex', original_caption)
 
     # ✅ Replace all URLs with your custom invite link
     original_caption = re.sub(
@@ -1184,7 +1184,7 @@ async def rename_file(file, sender, caption=None):
     base_name = os.path.basename(base_name)
 
     # Apply text transformations
-    base_name = re.sub(r'@\w+', '@Src_pro_bot', base_name)  # Replace mentions
+    base_name = re.sub(r'@\w+', '@Chosen_Onex', base_name)  # Replace mentions
     for word in delete_words:
         base_name = base_name.replace(word, "")  # Remove banned words
     for word, replace_word in replacements.items():
