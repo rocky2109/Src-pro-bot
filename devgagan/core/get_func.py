@@ -828,7 +828,7 @@ async def callback_query_handler(event):
         sessions[user_id] = 'setcaption'
 
     elif data == 'setreplacement':
-        await event.respond("🔄 Send replacement inside this ''\n\n'oldword' 'newword'\n\n")
+        await event.respond("🔄 Send replacement inside this ' '\n\n'oldword' 'newword'\n\n")
         sessions[user_id] = 'setreplacement'
 
     elif data == 'addsession':
@@ -980,7 +980,7 @@ async def handle_user_input(event):
                     replacements = load_replacement_words(user_id)
                     replacements[word] = replace_word
                     save_replacement_words(user_id, replacements)
-                    await event.respond(f"⇆ Replacement saved: 🌚 '{word}' ≫ '{replace_word}' 🌝")
+                    await event.respond(f"⇆ Replacement saved:\n\n 🌚 '{word}' ≫ '{replace_word}' 🌝")
 
         elif session_type == 'addsession':
             session_string = event.text
