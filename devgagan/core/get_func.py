@@ -828,7 +828,7 @@ async def callback_query_handler(event):
         sessions[user_id] = 'setcaption'
 
     elif data == 'setreplacement':
-        await event.respond("🔄 Send replacement in this format:\n\n`oldword newword`\n\n*Example:* `1080p HD`")
+        await event.respond("🔄 Send replacement inside this ''\n\n'oldword' 'newword'\n\n")
         sessions[user_id] = 'setreplacement'
 
     elif data == 'addsession':
@@ -836,7 +836,7 @@ async def callback_query_handler(event):
         sessions[user_id] = 'addsession'
 
     elif data == 'delete':
-        await event.respond("❌ Send **words to delete** (separated by space) from the filename/caption:")
+        await event.respond("🗑️ Send **words to delete** (separated by space) from the filename/caption:")
         sessions[user_id] = 'deleteword'
 
     elif data == 'logout':
@@ -953,14 +953,14 @@ async def handle_user_input(event):
             try:
                 chat_id = event.text
                 user_chat_ids[user_id] = chat_id
-                await event.respond("Chat ID set successfully!")
+                await event.respond("Chat ID set successfully! ✅ Now i will Forward All Content in That Chat")
             except ValueError:
-                await event.respond("Invalid chat ID!")
+                await event.respond("Invalid chat ID! Send valid chat id starting with -100xxxxxxxx")
                 
         elif session_type == 'setrename':
             custom_rename_tag = event.text
             await set_rename_command(user_id, custom_rename_tag)
-            await event.respond(f"Custom rename tag set to: {custom_rename_tag}")
+            await event.respond(f"😉 Your Custom rename tag set to: {custom_rename_tag} 🌝")
         
         elif session_type == 'setcaption':
             custom_caption = event.text
@@ -970,7 +970,7 @@ async def handle_user_input(event):
         elif session_type == 'setreplacement':
             match = re.match(r"'(.+)' '(.+)'", event.text)
             if not match:
-                await event.respond("Usage: 'WORD(s)' 'REPLACEWORD'")
+                await event.respond("Usage: 'Oldword(S)' 'ReplaceWord'\n\n **Example:** 'apple' 'banana'")
             else:
                 word, replace_word = match.groups()
                 delete_words = load_delete_words(user_id)
@@ -980,7 +980,7 @@ async def handle_user_input(event):
                     replacements = load_replacement_words(user_id)
                     replacements[word] = replace_word
                     save_replacement_words(user_id, replacements)
-                    await event.respond(f"Replacement saved: '{word}' will be replaced with '{replace_word}'")
+                    await event.respond(f"⇆ Replacement saved: 🌚 '{word}' ≫ '{replace_word}' 🌝")
 
         elif session_type == 'addsession':
             session_string = event.text
@@ -992,7 +992,7 @@ async def handle_user_input(event):
             delete_words = load_delete_words(user_id)
             delete_words.update(words_to_delete)
             save_delete_words(user_id, delete_words)
-            await event.respond(f"Words added to delete list: {', '.join(words_to_delete)}")
+            await event.respond(f"🗑️ Words added to delete list: {', '.join(words_to_delete)}")
                
             
         del sessions[user_id]
@@ -1001,7 +1001,7 @@ async def handle_user_input(event):
 @gf.on(events.NewMessage(incoming=True, pattern='/lock'))
 async def lock_command_handler(event):
     if event.sender_id not in OWNER_ID:
-        return await event.respond("You are not authorized to use this command.")
+        return await event.respond("You are not authorized to use this command.😘 its only for my owner")
     
     # Extract the channel ID from the command
     try:
