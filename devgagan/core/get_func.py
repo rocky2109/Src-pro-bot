@@ -1,4 +1,4 @@
-1# ---------------------------------------------------
+# ---------------------------------------------------
 # File Name: get_func.py
 # Description: A Pyrogram bot for downloading files from Telegram channels or groups 
 #              and uploading them back to Telegram.
@@ -36,6 +36,53 @@ from devgagan.core.mongo import db as odb
 from telethon import TelegramClient, events, Button
 from devgagantools import fast_upload
 from datetime import datetime
+import asyncio
+import unicodedata
+from datetime import datetime
+from pyrogram.enums import ParseMode
+from telethon.tl.types import DocumentAttributeVideo
+
+def clean_filename(text: str) -> str:
+    if not text:
+        return "file"
+
+    # Remove only known junk characters (stylized, emojis, symbols)
+    clean = []
+    for char in text:
+        codepoint = ord(char)
+
+        if (
+            0x1F000 <= codepoint <= 0x1FAFF or  # Emoji block
+            0x13000 <= codepoint <= 0x1342F or  # Hieroglyphs
+            0x1F300 <= codepoint <= 0x1F9FF or  # Misc symbols
+            0x1D400 <= codepoint <= 0x1D7FF     # Math stylized
+        ):
+            continue  # remove stylized/emoji/unwanted symbols
+
+        clean.append(char)
+
+    # Join and clean residuals
+    text = ''.join(clean)
+
+    # Only allow safe characters and Indian scripts
+    text = re.sub(
+        r'[^a-zA-Z0-9\s.\-()\[\]–—'
+        r'\u0900-\u097F'  # Devanagari (Hindi)
+        r'\u0A80-\u0AFF'  # Gujarati
+        r'\u0980-\u09FF'  # Bengali
+        r'\u0B80-\u0BFF'  # Tamil
+        r'\u0C00-\u0C7F'  # Telugu
+        r'\u0C80-\u0CFF'  # Kannada
+        r'\u0D00-\u0D7F'  # Malayalam
+        r'\u0A00-\u0A7F'  # Gurmukhi
+        r']+', '', text
+    )
+
+    # Normalize multiple spaces/underscores/dashes
+    text = re.sub(r'[_\s\-]+', ' ', text)
+    return text.strip()
+
+
 
 def thumbnail(sender):
     path = os.path.join(THUMBNAIL_DIR, f"{sender}.jpg")
@@ -123,62 +170,6 @@ async def log_upload(user_id, file_type, file_msg, upload_method, duration=None,
 
 
 # Upload handler
-import os
-import re
-import gc
-import time
-import asyncio
-import unicodedata
-from datetime import datetime
-from pyrogram.enums import ParseMode
-from telethon.tl.types import DocumentAttributeVideo
-
-import re
-
-def clean_filename(text: str) -> str:
-    if not text:
-        return "file"
-
-    # Remove only known junk characters (stylized, emojis, symbols)
-    clean = []
-    for char in text:
-        codepoint = ord(char)
-
-        if (
-            0x1F000 <= codepoint <= 0x1FAFF or  # Emoji block
-            0x13000 <= codepoint <= 0x1342F or  # Hieroglyphs
-            0x1F300 <= codepoint <= 0x1F9FF or  # Misc symbols
-            0x1D400 <= codepoint <= 0x1D7FF     # Math stylized
-        ):
-            continue  # remove stylized/emoji/unwanted symbols
-
-        clean.append(char)
-
-    # Join and clean residuals
-    text = ''.join(clean)
-
-    # Only allow safe characters and Indian scripts
-    text = re.sub(
-        r'[^a-zA-Z0-9\s.\-()\[\]–—'
-        r'\u0900-\u097F'  # Devanagari (Hindi)
-        r'\u0A80-\u0AFF'  # Gujarati
-        r'\u0980-\u09FF'  # Bengali
-        r'\u0B80-\u0BFF'  # Tamil
-        r'\u0C00-\u0C7F'  # Telugu
-        r'\u0C80-\u0CFF'  # Kannada
-        r'\u0D00-\u0D7F'  # Malayalam
-        r'\u0A00-\u0A7F'  # Gurmukhi
-        r']+', '', text
-    )
-
-    # Normalize multiple spaces/underscores/dashes
-    text = re.sub(r'[_\s\-]+', ' ', text)
-    return text.strip()
-
-
-
-
-# Upload handler
 async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
     try:
         upload_method = await fetch_upload_method(sender)
@@ -194,18 +185,26 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
         video_formats = {'mp4', 'mkv', 'avi', 'mov'}
         image_formats = {'jpg', 'png', 'jpeg'}
 
+        # Generate log caption
+        user = await app.get_users(sender)
+        bot = await app.get_me()
+        user_mention = user.mention if user else "User"
+        bot_name = f"{bot.first_name} (@{bot.username})" if bot else "Bot"
+
+        display_text = caption or file_name or "No caption/filename"
+        clean_text = (display_text[:1000] + '...') if len(display_text) > 1000 else display_text
+
         log_caption = (
-            f"📁 **File Name:** {file_name}\n\n"
-            f"📤 **Upload Info**\n"
-            f"👤 **User:** [{sender}](tg://user?id={sender})\n"
+            f"> {clean_text}\n\n"
+            f"📁 **log info:**\n"
+            f"👤 **User:** {user_mention}\n"
             f"🆔 **User ID:** `{sender}`\n"
-            f"🗂️ **Type:** `{ext.upper()}`\n"
+            f"🤖 **Saved by:** {bot_name}"
         )
 
         # ────── Pyrogram Upload ──────
         if upload_method == "Pyrogram":
             if ext in video_formats:
-                file_type = "Video"
                 dm = await app.send_video(
                     chat_id=target_chat_id,
                     video=file,
@@ -221,7 +220,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                     progress_args=("╔══━⚡️Uploading...⚡️━══╗\n", edit, time.time())
                 )
                 await app.send_video(
-                    chat_id=LOG_GROUP,
+                    LOG_GROUP,
                     video=file,
                     caption=log_caption,
                     height=height,
@@ -233,7 +232,6 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 )
 
             elif ext in image_formats:
-                file_type = "Photo"
                 dm = await app.send_photo(
                     chat_id=target_chat_id,
                     photo=file,
@@ -245,7 +243,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                     progress_args=("╔══━⚡️Uploading...⚡️━══╗\n", edit, time.time())
                 )
                 await app.send_photo(
-                    chat_id=LOG_GROUP,
+                    LOG_GROUP,
                     photo=file,
                     caption=log_caption,
                     has_spoiler=True,
@@ -253,12 +251,11 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 )
 
             else:
-                file_type = f"Document ({ext})"
                 dm = await app.send_document(
                     chat_id=target_chat_id,
                     document=file,
                     caption=caption,
-                    has_spoiler=True,
+                    has_spoiler=True,  # Telegram ignores this for documents
                     thumb=thumb_path,
                     reply_to_message_id=topic_id,
                     parse_mode=ParseMode.MARKDOWN,
@@ -267,14 +264,12 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 )
                 await asyncio.sleep(2)
                 await app.send_document(
-                    chat_id=LOG_GROUP,
+                    LOG_GROUP,
                     document=file,
                     caption=log_caption,
-                    has_spoiler=True,
                     thumb=thumb_path,
                     parse_mode=ParseMode.MARKDOWN
                 )
-
 
         # ────── Telethon Upload ──────
         elif upload_method == "Telethon":
