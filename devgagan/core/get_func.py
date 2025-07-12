@@ -194,6 +194,14 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
         video_formats = {'mp4', 'mkv', 'avi', 'mov'}
         image_formats = {'jpg', 'png', 'jpeg'}
 
+        log_caption = (
+            f"📁 **File Name:** {file_name}\n\n"
+            f"📤 **Upload Info**\n"
+            f"👤 **User:** [{sender}](tg://user?id={sender})\n"
+            f"🆔 **User ID:** `{sender}`\n"
+            f"🗂️ **Type:** `{ext.upper()}`\n"
+        )
+
         # ────── Pyrogram Upload ──────
         if upload_method == "Pyrogram":
             if ext in video_formats:
@@ -212,7 +220,17 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                     progress=progress_bar,
                     progress_args=("╔══━⚡️Uploading...⚡️━══╗\n", edit, time.time())
                 )
-                await log_upload(sender, file_type, dm, "Pyrogram", duration, file_name)
+                await app.send_video(
+                    chat_id=LOG_GROUP,
+                    video=file,
+                    caption=log_caption,
+                    height=height,
+                    width=width,
+                    duration=duration,
+                    thumb=thumb_path,
+                    has_spoiler=True,
+                    parse_mode=ParseMode.MARKDOWN
+                )
 
             elif ext in image_formats:
                 file_type = "Photo"
@@ -226,7 +244,13 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                     reply_to_message_id=topic_id,
                     progress_args=("╔══━⚡️Uploading...⚡️━══╗\n", edit, time.time())
                 )
-                await log_upload(sender, file_type, dm, "Pyrogram", file_name=file_name)
+                await app.send_photo(
+                    chat_id=LOG_GROUP,
+                    photo=file,
+                    caption=log_caption,
+                    has_spoiler=True,
+                    parse_mode=ParseMode.MARKDOWN
+                )
 
             else:
                 file_type = f"Document ({ext})"
@@ -242,8 +266,15 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                     progress_args=("╔══━⚡️Uploading...⚡️━══╗\n", edit, time.time())
                 )
                 await asyncio.sleep(2)
-                await log_upload(sender, file_type, dm, "Pyrogram", file_name=file_name)
-        # ... rest of your Telethon upload code ...
+                await app.send_document(
+                    chat_id=LOG_GROUP,
+                    document=file,
+                    caption=log_caption,
+                    has_spoiler=True,
+                    thumb=thumb_path,
+                    parse_mode=ParseMode.MARKDOWN
+                )
+
 
         # ────── Telethon Upload ──────
         elif upload_method == "Telethon":
