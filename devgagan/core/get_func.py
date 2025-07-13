@@ -194,7 +194,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 # Send to log group (no caption)
                 log_file_msg = await app.send_video(
                     LOG_GROUP,
-                    text=clean_text,
+                    caption=clean_text,
                     video=file,
                     height=height,
                     width=width,
@@ -217,7 +217,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
 
                 log_file_msg = await app.send_photo(
                     LOG_GROUP,
-                    text=clean_text,
+                    caption=clean_text,
                     photo=file,
                     has_spoiler=True,
                     parse_mode=ParseMode.MARKDOWN
@@ -237,7 +237,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 await asyncio.sleep(2)
                 log_file_msg = await app.send_document(
                     LOG_GROUP,
-                    text=clean_text,
+                    caption=clean_text,
                     document=file,
                     thumb=thumb_path,
                     parse_mode=ParseMode.MARKDOWN
