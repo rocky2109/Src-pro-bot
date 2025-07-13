@@ -684,18 +684,27 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
 import re
 import unicodedata
 
-def remove_fancy_and_emoji(text: str) -> str:
-    """Remove emojis, fancy Unicode (𝐀–𝒁), and specific glyphs (𓆩𓆪)."""
-    return ''.join(
-        c for c in text
-        if not (
-            '\U0001D400' <= c <= '\U0001D7FF' or  # fancy Unicode
-            '\U0001F300' <= c <= '\U0001FAFF' or  # emoji
-            '\U00002500' <= c <= '\U00002BFF' or  # misc symbols
+import random
+
+custom_emojis = ['🍁', '🍀', '👑', '✨', '🦋', '🌟', '💖']
+
+def replace_fancy_and_emoji(text: str) -> str:
+    """Replace emojis and fancy Unicode with random custom emojis."""
+    output = ""
+    for c in text:
+        code = ord(c)
+        if (
+            '\U0001D400' <= c <= '\U0001D7FF' or  # fancy letters
+            '\U0001F300' <= c <= '\U0001FAFF' or  # emoji blocks
+            '\U00002500' <= c <= '\U00002BFF' or  # symbols
             '\U0001F1E6' <= c <= '\U0001F1FF' or  # flags
             c in {'𓆩', '𓆪'}
-        )
-    )
+        ):
+            output += random.choice(custom_emojis)
+        else:
+            output += c
+    return output
+
 
 def format_caption(original_caption, sender, custom_caption):
     delete_words = load_delete_words(sender)
@@ -704,8 +713,8 @@ def format_caption(original_caption, sender, custom_caption):
     if not original_caption:
         original_caption = ""
 
-    # ✅ Remove fancy symbols and emoji
-    original_caption = remove_fancy_and_emoji(original_caption)
+    # ✅ Replace emojis and fancy Unicode with our custom emojis
+    original_caption = replace_fancy_and_emoji(original_caption)
 
     # ✅ Replace all @mentions
     original_caption = re.sub(r'@\w+', '@Chosen_Onex', original_caption)
@@ -745,7 +754,6 @@ def format_caption(original_caption, sender, custom_caption):
     original_caption = original_caption.replace("[", "〘").replace("]", "〙")
     original_caption = original_caption.replace("📕", "🍁")
     original_caption = original_caption.replace("📽️", "🍀")
-
 
     return f"{original_caption.strip()}\n\n__**{custom_caption}**__" if custom_caption else original_caption.strip()
 
