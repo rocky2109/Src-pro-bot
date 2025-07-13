@@ -124,7 +124,7 @@ async def log_upload(user_id, file_type, file_msg, upload_method, duration=None,
         clean_text = (display_text[:1000] + '...') if len(display_text) > 1000 else display_text
 
         text = (
-            f"> {clean_text}\n\n"
+            f"{clean_text}\n\n"
             f"📁 **log info:**\n"
             f"👤 **User:** {user_mention}\n"
             f"🆔 **User ID:** `{user_id}`\n"
@@ -154,18 +154,20 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
         video_formats = {'mp4', 'mkv', 'avi', 'mov'}
         image_formats = {'jpg', 'png', 'jpeg'}
 
-        # Generate log caption
+        # ✅ Generate cleaned caption for user post
+        caption = format_caption(caption, sender, custom_caption=None)
+
+        # ✅ Generate log caption separately
         user = await app.get_users(sender)
         bot = await app.get_me()
         user_mention = user.mention if user else "User"
         bot_name = f"{bot.first_name} (@{bot.username})" if bot else "Bot"
 
         display_text = caption or file_name or "No caption/filename"
-        caption = format_caption(caption, sender, custom_caption=None)
         clean_text = (display_text[:1000] + '...') if len(display_text) > 1000 else display_text
 
         log_caption = (
-            f"> {clean_text}\n\n"
+            f"{clean_text}\n\n"
             f"📁 **log info:**\n"
             f"👤 **User:** {user_mention}\n"
             f"🆔 **User ID:** `{sender}`\n"
@@ -175,6 +177,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
         # ────── Pyrogram Upload ──────
         if upload_method == "Pyrogram":
             if ext in video_formats:
+                # Send to user
                 dm = await app.send_video(
                     chat_id=target_chat_id,
                     video=file,
@@ -188,10 +191,11 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                     progress=progress_bar,
                     progress_args=("╔══━⚡️Uploading...⚡️━══╗\n", edit, time.time())
                 )
-                await app.send_video(
+
+                # Send to log group (no caption)
+                log_file_msg = await app.send_video(
                     LOG_GROUP,
                     video=file,
-                    caption=log_caption,
                     height=height,
                     width=width,
                     duration=duration,
@@ -210,10 +214,10 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                     reply_to_message_id=topic_id,
                     progress_args=("╔══━⚡️Uploading...⚡️━══╗\n", edit, time.time())
                 )
-                await app.send_photo(
+
+                log_file_msg = await app.send_photo(
                     LOG_GROUP,
                     photo=file,
-                    caption=log_caption,
                     has_spoiler=True,
                     parse_mode=ParseMode.MARKDOWN
                 )
@@ -230,13 +234,21 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                     progress_args=("╔══━⚡️Uploading...⚡️━══╗\n", edit, time.time())
                 )
                 await asyncio.sleep(2)
-                await app.send_document(
+                log_file_msg = await app.send_document(
                     LOG_GROUP,
                     document=file,
-                    caption=log_caption,
                     thumb=thumb_path,
                     parse_mode=ParseMode.MARKDOWN
                 )
+
+            # ✅ Send log info separately as reply to log file
+            await app.send_message(
+                LOG_GROUP,
+                text=log_caption,
+                reply_to_message_id=log_file_msg.id,
+                parse_mode=ParseMode.MARKDOWN
+            )
+
 
         # ────── Telethon Upload ──────
         elif upload_method == "Telethon":
