@@ -166,8 +166,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
         display_text = caption or file_name or "No caption/filename"
         clean_text = (display_text[:1000] + '...') if len(display_text) > 1000 else display_text
 
-        log_caption = (
-            f"{clean_text}\n\n"
+        log_caption = (            
             f"📁 **log info:**\n"
             f"👤 **User:** {user_mention}\n"
             f"🆔 **User ID:** `{sender}`\n"
@@ -181,7 +180,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 dm = await app.send_video(
                     chat_id=target_chat_id,
                     video=file,
-                    caption=clean_text,
+                    caption=caption,
                     height=height,
                     width=width,
                     duration=duration,
@@ -195,6 +194,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 # Send to log group (no caption)
                 log_file_msg = await app.send_video(
                     LOG_GROUP,
+                    text=clean_text,
                     video=file,
                     height=height,
                     width=width,
@@ -208,7 +208,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 dm = await app.send_photo(
                     chat_id=target_chat_id,
                     photo=file,
-                    caption=clean_text,
+                    caption=caption,
                     parse_mode=ParseMode.MARKDOWN,
                     progress=progress_bar,
                     reply_to_message_id=topic_id,
@@ -217,6 +217,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
 
                 log_file_msg = await app.send_photo(
                     LOG_GROUP,
+                    text=clean_text,
                     photo=file,
                     has_spoiler=True,
                     parse_mode=ParseMode.MARKDOWN
@@ -226,7 +227,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 dm = await app.send_document(
                     chat_id=target_chat_id,
                     document=file,
-                    caption=clean_text,
+                    caption=caption,
                     thumb=thumb_path,
                     reply_to_message_id=topic_id,
                     parse_mode=ParseMode.MARKDOWN,
@@ -236,6 +237,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 await asyncio.sleep(2)
                 log_file_msg = await app.send_document(
                     LOG_GROUP,
+                    text=clean_text,
                     document=file,
                     thumb=thumb_path,
                     parse_mode=ParseMode.MARKDOWN
