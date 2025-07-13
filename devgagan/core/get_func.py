@@ -161,6 +161,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
         bot_name = f"{bot.first_name} (@{bot.username})" if bot else "Bot"
 
         display_text = caption or file_name or "No caption/filename"
+        caption = format_caption(caption, sender, custom_caption=None)
         clean_text = (display_text[:1000] + '...') if len(display_text) > 1000 else display_text
 
         log_caption = (
