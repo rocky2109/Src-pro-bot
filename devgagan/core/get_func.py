@@ -181,7 +181,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 dm = await app.send_video(
                     chat_id=target_chat_id,
                     video=file,
-                    caption=caption,
+                    caption=clean_text,
                     height=height,
                     width=width,
                     duration=duration,
@@ -208,7 +208,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 dm = await app.send_photo(
                     chat_id=target_chat_id,
                     photo=file,
-                    caption=caption,
+                    caption=clean_text,
                     parse_mode=ParseMode.MARKDOWN,
                     progress=progress_bar,
                     reply_to_message_id=topic_id,
@@ -226,7 +226,7 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                 dm = await app.send_document(
                     chat_id=target_chat_id,
                     document=file,
-                    caption=caption,
+                    caption=clean_text,
                     thumb=thumb_path,
                     reply_to_message_id=topic_id,
                     parse_mode=ParseMode.MARKDOWN,
@@ -715,6 +715,7 @@ def format_caption(original_caption, sender, custom_caption):
 
     # ✅ Replace emojis and fancy Unicode with our custom emojis
     original_caption = replace_fancy_and_emoji(original_caption)
+    original_caption = re.sub(r'#\S+', '', original_caption)
 
     # ✅ Replace all @mentions
     original_caption = re.sub(r'@\w+', '@Chosen_Onex', original_caption)
