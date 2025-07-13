@@ -42,46 +42,15 @@ from datetime import datetime
 from pyrogram.enums import ParseMode
 from telethon.tl.types import DocumentAttributeVideo
 
-def clean_filename(text: str) -> str:
+# Clean filename helper
+def clean_filename(text):
     if not text:
         return "file"
-
-    # Remove only known junk characters (stylized, emojis, symbols)
-    clean = []
-    for char in text:
-        codepoint = ord(char)
-
-        if (
-            0x1F000 <= codepoint <= 0x1FAFF or  # Emoji block
-            0x13000 <= codepoint <= 0x1342F or  # Hieroglyphs
-            0x1F300 <= codepoint <= 0x1F9FF or  # Misc symbols
-            0x1D400 <= codepoint <= 0x1D7FF     # Math stylized
-        ):
-            continue  # remove stylized/emoji/unwanted symbols
-
-        clean.append(char)
-
-    # Join and clean residuals
-    text = ''.join(clean)
-
-    # Only allow safe characters and Indian scripts
-    text = re.sub(
-        r'[^a-zA-Z0-9\s.\-()\[\]–—'
-        r'\u0900-\u097F'  # Devanagari (Hindi)
-        r'\u0A80-\u0AFF'  # Gujarati
-        r'\u0980-\u09FF'  # Bengali
-        r'\u0B80-\u0BFF'  # Tamil
-        r'\u0C00-\u0C7F'  # Telugu
-        r'\u0C80-\u0CFF'  # Kannada
-        r'\u0D00-\u0D7F'  # Malayalam
-        r'\u0A00-\u0A7F'  # Gurmukhi
-        r']+', '', text
-    )
-
-    # Normalize multiple spaces/underscores/dashes
-    text = re.sub(r'[_\s\-]+', ' ', text)
+    # Normalize unicode and strip non-ASCII
+    text = unicodedata.normalize("NFKD", text)
+    text = re.sub(r'[^\w\s.-]', '', text)  # Remove special chars/emojis
+    text = re.sub(r'[_\s\-]+', ' ', text)  # Normalize spacing
     return text.strip()
-
 
 
 def thumbnail(sender):
@@ -213,7 +182,6 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                     width=width,
                     duration=duration,
                     thumb=thumb_path,
-                    has_spoiler=True,
                     reply_to_message_id=topic_id,
                     parse_mode=ParseMode.MARKDOWN,
                     progress=progress_bar,
@@ -236,7 +204,6 @@ async def upload_media(sender, target_chat_id, file, caption, edit, topic_id):
                     chat_id=target_chat_id,
                     photo=file,
                     caption=caption,
-                    has_spoiler=True,
                     parse_mode=ParseMode.MARKDOWN,
                     progress=progress_bar,
                     reply_to_message_id=topic_id,
@@ -701,38 +668,75 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
         return await app.send_message(target_chat_id, f"❌ Failed to send media.\n\nError: `{e}`")
 
 
+import re
+import unicodedata
+
+def remove_fancy_and_emoji(text: str) -> str:
+    """Remove emojis, fancy Unicode (𝐀–𝒁), and specific glyphs (𓆩𓆪)."""
+    return ''.join(
+        c for c in text
+        if not (
+            '\U0001D400' <= c <= '\U0001D7FF' or  # fancy Unicode
+            '\U0001F300' <= c <= '\U0001FAFF' or  # emoji
+            '\U00002500' <= c <= '\U00002BFF' or  # misc symbols
+            '\U0001F1E6' <= c <= '\U0001F1FF' or  # flags
+            c in {'𓆩', '𓆪'}
+        )
+    )
+
 def format_caption(original_caption, sender, custom_caption):
     delete_words = load_delete_words(sender)
     replacements = load_replacement_words(sender)
 
-    # ✅ Replace all @mentions with your bot's handle
+    if not original_caption:
+        original_caption = ""
+
+    # ✅ Remove fancy symbols and emoji
+    original_caption = remove_fancy_and_emoji(original_caption)
+
+    # ✅ Replace all @mentions
     original_caption = re.sub(r'@\w+', '@Chosen_Onex', original_caption)
 
-    # ✅ Replace all URLs with your custom invite link
+    # ✅ Replace t.me links
     original_caption = re.sub(
         r'https?://t\.me/[^\s]+|https?://telegram\.me/[^\s]+',
         'https://t.me/+7R-7p7jVoz9mM2M1',
         original_caption
     )
-    # ✅ Remove everything after 'Extracted By ...'
-    original_caption = re.sub(r'(Extracted By)[^\n]*', r'\1 @Src_pro_bot', original_caption, flags=re.IGNORECASE)
-    original_caption = re.sub(r'(Downloaded By)[^\n]*', r'\1 @Src_pro_bot', original_caption, flags=re.IGNORECASE)
-    original_caption = re.sub(r'(Downloaded By:)[^\n]*', r'\1 @Src_pro_bot', original_caption, flags=re.IGNORECASE)
 
+    # ✅ Replace all variants of "Extracted By"
+    original_caption = re.sub(
+        r'(?:<u>)?(Extracted[\s_]*By\s*[➤:>–\-]*\s*)([^\n<]*)(?:</u>)?',
+        r'\1Sᴛꪮʟᴇɴ Hᴀᴘᴘɪɴᴇss',
+        original_caption,
+        flags=re.IGNORECASE
+    )
 
+    # ✅ Replace all variants of "Downloaded By"
+    original_caption = re.sub(
+        r'(?:<u>)?(Downloaded[\s_]*By\s*[➤:>–\-]*\s*)([^\n<]*)(?:</u>)?',
+        r'\1@Src_pro_bot',
+        original_caption,
+        flags=re.IGNORECASE
+    )
 
-    # 🔁 Delete unwanted words
+    # 🔁 Delete specific unwanted words
     for word in delete_words:
         original_caption = original_caption.replace(word, '  ')
 
-    # 🔁 Replace custom words
+    # 🔁 Replace mapped words
     for word, replace_word in replacements.items():
         original_caption = original_caption.replace(word, replace_word)
 
-    # 🔧 Return formatted caption
+    # ✅ Replace [ and ] with 〘 and 〙
+    original_caption = original_caption.replace("[", "〘").replace("]", "〙")
+    original_caption = original_caption.replace("📕", "🍁")
+    original_caption = original_caption.replace("📽️", "🍀")
+
+
     return f"{original_caption.strip()}\n\n__**{custom_caption}**__" if custom_caption else original_caption.strip()
 
-    
+
 # ------------------------ Button Mode Editz FOR SETTINGS ----------------------------
 
 # Define a dictionary to store user chat IDs
