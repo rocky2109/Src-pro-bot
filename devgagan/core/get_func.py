@@ -684,27 +684,32 @@ async def send_media_message(app, target_chat_id, msg, caption, topic_id):
 import re
 import unicodedata
 
+import re
 import random
+import unicodedata
 
-custom_emojis = ['🍁', '🍀', '👑', '✨', '🦋', '🌟', '💖']
+CUSTOM_EMOJIS = ["🍁", "🍀", "👑", "✨", "🦋", "🌟", "💖"]
 
 def replace_fancy_and_emoji(text: str) -> str:
-    """Replace emojis and fancy Unicode with random custom emojis."""
-    output = ""
-    for c in text:
-        code = ord(c)
-        if (
-            '\U0001D400' <= c <= '\U0001D7FF' or  # fancy letters
-            '\U0001F300' <= c <= '\U0001FAFF' or  # emoji blocks
-            '\U00002500' <= c <= '\U00002BFF' or  # symbols
-            '\U0001F1E6' <= c <= '\U0001F1FF' or  # flags
-            c in {'𓆩', '𓆪'}
-        ):
-            output += random.choice(custom_emojis)
-        else:
-            output += c
-    return output
+    """
+    Remove fancy Unicode characters (like 𝐀–𝒁, 𓆩𓆪, etc.)
+    Replace emojis (symbols) with our custom emoji set.
+    """
+    result = []
+    for char in text:
+        code = ord(char)
 
+        # Skip fancy styled alphabets (Mathematical, etc.)
+        if (0x1D400 <= code <= 0x1D7FF) or (0x13000 <= code <= 0x1342F):
+            continue
+
+        # Replace emojis or symbolic characters
+        if unicodedata.category(char) == "So" or char in ['️', '‍', '\u200d']:
+            result.append(random.choice(CUSTOM_EMOJIS))
+        else:
+            result.append(char)
+
+    return ''.join(result)
 
 def format_caption(original_caption, sender, custom_caption):
     delete_words = load_delete_words(sender)
@@ -713,21 +718,23 @@ def format_caption(original_caption, sender, custom_caption):
     if not original_caption:
         original_caption = ""
 
-    # ✅ Replace emojis and fancy Unicode with our custom emojis
+    # ✅ Clean fancy characters and replace emojis
     original_caption = replace_fancy_and_emoji(original_caption)
+
+    # ✅ Remove all hashtags like #Movie
     original_caption = re.sub(r'#\S+', '', original_caption)
 
-    # ✅ Replace all @mentions
+    # ✅ Replace @mentions
     original_caption = re.sub(r'@\w+', '@Chosen_Onex', original_caption)
 
-    # ✅ Replace t.me links
+    # ✅ Replace telegram links
     original_caption = re.sub(
-        r'https?://t\.me/[^\s]+|https?://telegram\.me/[^\s]+',
+        r'https?://(t\.me|telegram\.me)/[^\s]+',
         'https://t.me/+7R-7p7jVoz9mM2M1',
         original_caption
     )
 
-    # ✅ Replace all variants of "Extracted By"
+    # ✅ Replace "Extracted By" with custom credit
     original_caption = re.sub(
         r'(?:<u>)?(Extracted[\s_]*By\s*[➤:>–\-]*\s*)([^\n<]*)(?:</u>)?',
         r'\1Sᴛꪮʟᴇɴ Hᴀᴘᴘɪɴᴇss',
@@ -735,7 +742,7 @@ def format_caption(original_caption, sender, custom_caption):
         flags=re.IGNORECASE
     )
 
-    # ✅ Replace all variants of "Downloaded By"
+    # ✅ Replace "Downloaded By" with bot handle
     original_caption = re.sub(
         r'(?:<u>)?(Downloaded[\s_]*By\s*[➤:>–\-]*\s*)([^\n<]*)(?:</u>)?',
         r'\1@Src_pro_bot',
@@ -743,21 +750,26 @@ def format_caption(original_caption, sender, custom_caption):
         flags=re.IGNORECASE
     )
 
-    # 🔁 Delete specific unwanted words
+    # 🔁 Delete unwanted words
     for word in delete_words:
-        original_caption = original_caption.replace(word, '  ')
+        original_caption = original_caption.replace(word, ' ')
 
     # 🔁 Replace mapped words
-    for word, replace_word in replacements.items():
-        original_caption = original_caption.replace(word, replace_word)
+    for old, new in replacements.items():
+        original_caption = original_caption.replace(old, new)
 
-    # ✅ Replace [ and ] with 〘 and 〙
+    # ✅ Symbol replacements
     original_caption = original_caption.replace("[", "〘").replace("]", "〙")
     original_caption = original_caption.replace("📕", "🍁")
     original_caption = original_caption.replace("📽️", "🍀")
 
-    return f"{original_caption.strip()}\n\n__**{custom_caption}**__" if custom_caption else original_caption.strip()
+    # ✅ Final whitespace cleanup
+    original_caption = re.sub(r'\s+', ' ', original_caption).strip()
 
+    # ✅ Append custom caption if exists
+    if custom_caption:
+        return f"{original_caption}\n\n__**{custom_caption}**__"
+    return original_caption
 
 # ------------------------ Button Mode Editz FOR SETTINGS ----------------------------
 
