@@ -93,12 +93,12 @@ async def token_handler(client, message):
                 "🔒 I Can Help You To **Save And Forward Content** from channels or groups that don't allow forwarding.🤫\n\n"
                 "📌 **How to use me:**\n"
                 "➤ Just **send me the post link** if it's Public\n"
-                "🔓 I'll fetch the media or message for you.\n\n"
+                "🔓 I'll send that post(s) to you.\n\n"
                 "> 💠 Use /batch For Bulk Forwarding...💀\n"
                 "🔐 **Private channel post?**\n"
                 "➤ First do /login to save posts from Private Channel\n\n"
                 "💡 Need help? Send /guide\n For More Features Use /settings 😉 \n\n"
-                ">⚡ Bot Made by CHOSEN ONE ⚝"
+                ">⚡ Contact Owner: @CHOSEN_ONEx"
             ),
             reply_markup=keyboard,  # ✅ fixed here
             message_effect_id=5104841245755180586
